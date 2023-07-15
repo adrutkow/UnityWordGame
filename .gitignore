@@ -73,3 +73,5 @@ crashlytics-build.properties
 
 # Extra stuff
 .vsconfig
+Assembly-CSharp.csproj
+WordGame.sln
