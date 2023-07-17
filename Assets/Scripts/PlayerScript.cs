@@ -12,7 +12,6 @@ public class PlayerScript : MonoBehaviour
     public LetterScript currentSelectedLetter;
     public static PlayerScript playerScript;
     public bool selectedLetterThisFrame = false;
-    public 
 
 
 
@@ -27,31 +26,21 @@ public class PlayerScript : MonoBehaviour
             hand[i] = Instantiate(letterPrefab);
             hand[i].GetComponent<LetterScript>().currentLetter = (int)Random.Range(0, 26);
         }
-
         ArrangeHand();
-
-
-
     }
 
     // Update is called once per frame
     void Update()
     {
         InputManager();
-        UpdateUI();
-    }
-
-
-    void UpdateUI()
-    {
-
     }
 
     public int[] GetMouseTilePosition()
     {
-        Vector3 offset = new Vector3(0.35f, 0.35f, 0);
-        int x = (int)((Camera.main.ScreenToWorldPoint(Input.mousePosition) + offset) / 0.77f)[0];
-        int y = (int)((Camera.main.ScreenToWorldPoint(Input.mousePosition) + offset) / 0.77f)[1];
+        float ts = GameBoardScript.TILE_SIZE;
+        Vector3 offset = new Vector3(ts / 2, ts / 2, 0);
+        int x = (int)((Camera.main.ScreenToWorldPoint(Input.mousePosition) + offset) / ts)[0];
+        int y = (int)((Camera.main.ScreenToWorldPoint(Input.mousePosition) + offset) / ts)[1];
         return new int[2] { x, y };
     }
 

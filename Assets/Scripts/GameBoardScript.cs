@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using UnityEditor.SceneTemplate;
 using UnityEngine;
 
 public class GameBoardScript : MonoBehaviour
@@ -9,6 +10,7 @@ public class GameBoardScript : MonoBehaviour
     public GameObject tile;
     public GameObject highlightTile;
     public int[] size = new int[2] { 10, 10 };
+    public const float TILE_SIZE = 0.77f;
     public TileScript[,] tiles;
     public LetterScript[,] boardLetters;
     public List<Word> possibleWords = new List<Word>();
@@ -17,8 +19,6 @@ public class GameBoardScript : MonoBehaviour
     public string[] wordList;
 
 
-
-    // Start is called before the first frame update
     void Start()
     {
         gameBoard = this;
@@ -28,11 +28,6 @@ public class GameBoardScript : MonoBehaviour
         GetWords();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 
     void GetWords()
     {
@@ -40,9 +35,24 @@ public class GameBoardScript : MonoBehaviour
         FR_WORDLIST = System.IO.File.ReadAllLines("Assets/fr.txt");
         wordList = FR_WORDLIST;
     }
-
-    public bool CheckIfWordExists(string w)
+    void BuildBoard()
     {
+        for (int y = 0; y < size[0]; y++)
+        {
+            for (int x = 0; x < size[1]; x++)
+            {
+                GameObject temp = Instantiate(tile, new Vector3(x * TILE_SIZE, y * TILE_SIZE), Quaternion.identity);
+                temp.GetComponent<TileScript>().SetPosition(x, y);
+                tiles[x, y] = temp.GetComponent<TileScript>();
+            }
+        }
+        tiles[12, 12].MakeStarTile();
+    }
+
+    public bool IsValidWord(string w)
+    {
+        /// Check if the given string exists in the current wordList
+        /// returns bool
         if (w.Length == 1) return false;
         string testword = w.ToLower();
         foreach (string word in wordList)
@@ -52,23 +62,10 @@ public class GameBoardScript : MonoBehaviour
         return false;
     }
 
-    void BuildBoard()
-    {
-        for (int y = 0; y < size[0]; y++)
-        {
-            for (int x = 0; x < size[1]; x++)
-            {
-                GameObject temp = Instantiate(tile, new Vector3(x * 0.77f, y * 0.77f), Quaternion.identity);
-                temp.GetComponent<TileScript>().SetPosition(x, y);
-                tiles[x,y] = temp.GetComponent<TileScript>();
-            }
-        }
-        tiles[12, 12].MakeStarTile();
-    }
 
     public void AddLetter(LetterScript letter, int x, int y)
     {
-        letter.transform.position = new Vector3(x * 0.77f, y * 0.77f);
+        letter.transform.position = new Vector3(x * TILE_SIZE, y * TILE_SIZE);
         letter.transform.parent = transform;
 
         if (letter.oldPosition[0] != -1)
@@ -117,20 +114,15 @@ public class GameBoardScript : MonoBehaviour
         CheckForWords(x, y - 1);
     }
 
-    public void CheckForWords(int x, int y)
+    public Word CheckForHorizontalWord(int x, int y)
     {
-        if (boardLetters[x, y] == null)
-        {
-            Debug.Log("No letter here");
-            return;
-        }
+        /// Checks for a horizontal word at the given position
+        /// Returns a Word object if it found a word, null otherwise
 
-        string tempH = boardLetters[x, y].GetLetter();
-        string tempV = boardLetters[x, y].GetLetter();
+        if (boardLetters[x, y] == null) return null;
 
+        string word = boardLetters[x, y].GetLetter();
         int leftMostX = x;
-        int upMostY = y;
-
 
         // Check for letters on the left side
         for (int i = 1; i < 30; i++)
@@ -139,8 +131,7 @@ public class GameBoardScript : MonoBehaviour
             {
                 break;
             }
-
-            tempH = boardLetters[x - i, y].GetLetter() + tempH;
+            word = boardLetters[x - i, y].GetLetter() + word;
             leftMostX = x - i;
         }
 
@@ -151,21 +142,27 @@ public class GameBoardScript : MonoBehaviour
             {
                 break;
             }
-
-            tempH += boardLetters[x + i, y].GetLetter();
+            word += boardLetters[x + i, y].GetLetter();
         }
 
-        Debug.Log("Horizontal word is: " + tempH);
-        Debug.Log("Is word?: " + CheckIfWordExists(tempH).ToString());
-
-        if (CheckIfWordExists(tempH))
+        if (IsValidWord(word))
         {
-            Word tempWord = new Word(leftMostX, y, true, tempH.Length);
-            Debug.Log(tempWord);
-            possibleWords.Add(tempWord);
-            tempWord.Hightlight();
+            Word tempWord = new Word(leftMostX, y, true, word.Length);
+            AddWordToList(tempWord);
         }
 
+        return null;
+    }
+
+    public Word CheckForVerticalWord(int x, int y)
+    {
+        /// Checks for a vertical word at the given position
+        /// Returns a Word object if it found a word, null otherwise
+
+        if (boardLetters[x, y] == null) return null;
+
+        string word = boardLetters[x, y].GetLetter();
+        int upMostY = y;
 
         // Check for letters on the top side
         for (int i = 1; i < 30; i++)
@@ -175,7 +172,7 @@ public class GameBoardScript : MonoBehaviour
                 break;
             }
 
-            tempV = boardLetters[x, y + i].GetLetter() + tempV;
+            word = boardLetters[x, y + i].GetLetter() + word;
             upMostY = y + i;
         }
 
@@ -187,27 +184,42 @@ public class GameBoardScript : MonoBehaviour
                 break;
             }
 
-            tempV += boardLetters[x, y - i].GetLetter();
+            word += boardLetters[x, y - i].GetLetter();
         }
 
-        Debug.Log("Vertical word is: " + tempV);
-        Debug.Log("Is word?: " + CheckIfWordExists(tempV).ToString());
-
-        if (CheckIfWordExists(tempV))
+        if (IsValidWord(word))
         {
-            Word tempWord = new Word(x, upMostY, false, tempV.Length);
-            Debug.Log(tempWord);
-            possibleWords.Add(tempWord);
-            tempWord.Hightlight();
+            Word tempWord = new Word(x, upMostY, false, word.Length);
+            return tempWord;
         }
+
+        return null;
+    }
+
+    public void CheckForWords(int x, int y)
+    {
+        /// This method scans for horizontal and vertical words at the given position
+        /// If it finds words, it adds them to the "possibleWords" list
+
+        if (boardLetters[x, y] == null) return;
+
+        Word horizontalWord = CheckForHorizontalWord(x, y);
+        Word verticalWord = CheckForVerticalWord(x, y);
+
+        if (horizontalWord != null) AddWordToList(horizontalWord);
+        if (verticalWord != null) AddWordToList(verticalWord);
     }
 
     public void OnBoardChange()
     {
-        Debug.Log("Testing for words");
+        /// This method checks every word in the "possibleWords" list
+        /// to see if the word has been changed. If so, it removes it from the list
+        /// Call this method every time there is a change applied
+        /// to the board
         List<Word> toBeRemoved = new List<Word>();
         foreach (Word word in possibleWords)
         {
+            // If any of the letters are missing, remove the word
             int ix = 0;
             int iy = 0;
             for (int i = 0; i < word.length; i++)
@@ -217,32 +229,78 @@ public class GameBoardScript : MonoBehaviour
 
                 if (boardLetters[word.x + ix, word.y - iy] == null)
                 {
-                    word.UnHighlight();
                     toBeRemoved.Add(word);
                 }
             }
 
-            if (boardLetters[word.x + word.length,word.y] != null)
+            if (word.isHorizontal)
             {
-                word.UnHighlight();
-                toBeRemoved.Add(word);
+                // Remove if a letter at the end of the word has been changed (horizontal)
+                if (boardLetters[word.x + word.length, word.y] != null)
+                {
+                    toBeRemoved.Add(word);
+                }
+
+                // Remove if a letter at the beginning of the word has been changed (horizontal)
+                if (boardLetters[word.x - 1, word.y] != null)
+                {
+                    toBeRemoved.Add(word);
+                }
             }
 
-            if (boardLetters[word.x - 1, word.y] != null)
+            if (!word.isHorizontal)
             {
-                word.UnHighlight();
-                toBeRemoved.Add(word);
+                // Remove if a letter at the end of the word has been changed (vertical)
+                if (boardLetters[word.x, word.y - word.length] != null)
+                {
+                    toBeRemoved.Add(word);
+                }
+
+                // Remove if a letter at the beginning of the word has been changed (vertical)
+                if (boardLetters[word.x, word.y + 1] != null)
+                {
+                    toBeRemoved.Add(word);
+                }
             }
         }
+        RemoveWordsFromListOfWords(possibleWords, toBeRemoved);
+    }
 
+    public void AddWordToList(Word w)
+    {
+        /// Add a Word object to the "possibleWords" list and highlight it
+        possibleWords.Add(w);
+        w.Hightlight();
+    }
 
-        foreach (Word w in toBeRemoved)
+    public void RemoveWordsFromListOfWords(List<Word> originalList, List<Word> wordsToBeRemoved)
+    {
+        foreach (Word w in wordsToBeRemoved)
         {
-            possibleWords.Remove(w);
+            w.UnHighlight();
+            originalList.Remove(w);
             CheckForWords(w.x, w.y);
-            Debug.Log("Removed highlight and word");
         }
+    }
 
+    public void RemoveAllWords(List<Word> originalList)
+    {
+        List<Word> listCopy = new List<Word>();
+        for (int i = 0; i < originalList.Count; i++)
+        {
+            listCopy.Add(originalList[i]);
+        }
+        RemoveWordsFromListOfWords(originalList, listCopy);
+    }
+
+
+    public void PlaceWords()
+    {
+        foreach (Word word in possibleWords)
+        {
+            word.MakePermanent();
+        }
+        RemoveAllWords(possibleWords);
     }
 
 }
@@ -266,14 +324,13 @@ public class Word
 
     public void Hightlight()
     {
-
-        //letter.transform.position = new Vector3(x * 0.77f, y * 0.77f);
         for (int i = 0; i < length; i++)
         {
             GameObject temp = GameObject.Instantiate(GameBoardScript.gameBoard.highlightTile);
 
-            if (isHorizontal) temp.transform.position = new Vector3((x + i) * 0.77f, y * 0.77f);
-            if (!isHorizontal) temp.transform.position = new Vector3(x * 0.77f, (y - i) * 0.77f);
+            float ts = GameBoardScript.TILE_SIZE;
+            if (isHorizontal) temp.transform.position = new Vector3((x + i) * ts, y * ts);
+            if (!isHorizontal) temp.transform.position = new Vector3(x * ts, (y - i) * ts);
 
             highlightTiles.Add(temp);
         }
@@ -284,6 +341,30 @@ public class Word
         for (int i = 0; i < highlightTiles.Count; i++)
         {
             GameObject.Destroy(highlightTiles[i]);
+        }
+    }
+
+    public List<LetterScript> GetAllLetters()
+    {
+        List<LetterScript> temp = new List<LetterScript>();
+        int ix = 0;
+        int iy = 0;
+
+        for (int i = 0; i < length; i++)
+        {
+            if (isHorizontal) ix = i;
+            if (!isHorizontal) iy = i;
+            temp.Add(GameBoardScript.gameBoard.boardLetters[x + ix, y - iy]);
+        }
+
+        return temp;
+    }
+
+    public void MakePermanent()
+    {
+        foreach (LetterScript letter in GetAllLetters())
+        {
+            letter.MakePermanent();
         }
     }
 

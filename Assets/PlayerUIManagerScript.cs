@@ -30,4 +30,9 @@ public class PlayerUIManagerScript : MonoBehaviour
             placeWordButton.SetActive(false);
         }
     }
+
+    public void OnPlaceWordsButtonPressed()
+    {
+        GameBoardScript.gameBoard.PlaceWords();
+    }
 }

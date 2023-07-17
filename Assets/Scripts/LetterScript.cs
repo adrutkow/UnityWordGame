@@ -15,7 +15,6 @@ public class LetterScript : MonoBehaviour
     public int[] oldPosition = new int[2] {-1, -1};
     public bool isPermanent = false;
 
-    // Start is called before the first frame update
     void Start()
     {
         ChangeLetter(currentLetter);
