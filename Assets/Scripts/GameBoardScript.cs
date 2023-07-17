@@ -7,6 +7,7 @@ using UnityEngine;
 public class GameBoardScript : MonoBehaviour
 {
     public static GameBoardScript gameBoard;
+    public GameObject letterPrefab;
     public GameObject tile;
     public GameObject highlightTile;
     public int[] size = new int[2] { 10, 10 };
@@ -14,9 +15,12 @@ public class GameBoardScript : MonoBehaviour
     public TileScript[,] tiles;
     public LetterScript[,] boardLetters;
     public List<Word> possibleWords = new List<Word>();
+    public List<string> completedWords = new List<string>();
     public string[] EN_WORDLIST;
     public string[] FR_WORDLIST;
     public string[] wordList;
+    public List<LetterScript> letterBag;
+    public List<PlayerScript> playersList;
 
 
     void Start()
@@ -24,17 +28,31 @@ public class GameBoardScript : MonoBehaviour
         gameBoard = this;
         tiles = new TileScript[size[0], size[1]];
         boardLetters = new LetterScript[size[0], size[1]];
+        letterBag = new List<LetterScript>();
+
         BuildBoard();
         GetWords();
+        SpawnLetters();
+        GetPlayers();
+        RoundStart();
     }
 
-
-    void GetWords()
+    /// <summary>
+    /// Change the current wordList to a certain language. Defaults to English.
+    /// Valid options: "EN", "FR"
+    /// </summary>
+    /// <param name="language"></param>
+    void GetWords(string language="EN")
     {
         EN_WORDLIST = System.IO.File.ReadAllLines("Assets/en.txt");
         FR_WORDLIST = System.IO.File.ReadAllLines("Assets/fr.txt");
-        wordList = FR_WORDLIST;
+        wordList = EN_WORDLIST;
+        if (language == "FR") wordList = FR_WORDLIST;
     }
+
+    /// <summary>
+    /// Place a bunch of tiles to represent the board, decorative.
+    /// </summary>
     void BuildBoard()
     {
         for (int y = 0; y < size[0]; y++)
@@ -49,10 +67,67 @@ public class GameBoardScript : MonoBehaviour
         tiles[12, 12].MakeStarTile();
     }
 
+    void SpawnLetters(int count = 40)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            LetterScript newLetter = Instantiate(letterPrefab).GetComponent<LetterScript>();
+            newLetter.currentLetter = Random.Range(0, 26);
+            letterBag.Add(newLetter);
+        }
+    }
+
+    void GetPlayers()
+    {
+        foreach(GameObject g in GameObject.FindGameObjectsWithTag("Player"))
+        {
+            playersList.Add(g.GetComponent<PlayerScript>());
+        }
+    }
+
+    void RoundStart()
+    {
+        foreach(PlayerScript player in playersList)
+        {
+            for (int i = 0; i < PlayerScript.HAND_SIZE; i++)
+            {
+                GivePlayerLetterFromBag(player);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Take the first letter from the bag, and give it to the player's hand, if it has an empty slot available
+    /// </summary>
+    /// <param name="player">true if successful, false otherwise</param>
+    public bool GivePlayerLetterFromBag(PlayerScript player)
+    {
+        player = GameObject.Find("Player").GetComponent<PlayerScript>();
+        if (letterBag.Count == 0) return false;
+
+        for (int i = 0; i < PlayerScript.HAND_SIZE; i++)
+        {
+            if (player.hand[i] == null)
+            {
+                LetterScript letterToGive = letterBag[0];
+                if (player.PutLetterInHand(letterToGive, i))
+                {
+                    letterBag.RemoveAt(0);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Checks if the given string exists in the current wordList.
+    /// </summary>
+    /// <param name="w"></param>
+    /// <returns>True if it exists, False if not.</returns>
     public bool IsValidWord(string w)
     {
-        /// Check if the given string exists in the current wordList
-        /// returns bool
+
         if (w.Length == 1) return false;
         string testword = w.ToLower();
         foreach (string word in wordList)
@@ -62,9 +137,9 @@ public class GameBoardScript : MonoBehaviour
         return false;
     }
 
-
     public void AddLetter(LetterScript letter, int x, int y)
     {
+        // idk what i did here, have to fix
         letter.transform.position = new Vector3(x * TILE_SIZE, y * TILE_SIZE);
         letter.transform.parent = transform;
 
@@ -78,30 +153,27 @@ public class GameBoardScript : MonoBehaviour
         letter.oldPosition[1] = y;
 
         boardLetters[x, y] = letter;
+        letter.ChangeState(LetterScript.State.ON_BOARD);
         CheckForWords(x, y);
         CheckForWordsAllAround(x, y);
         OnBoardChange();
     }
 
+    /// <summary>
+    /// Remove a letter at given position, and put it in the player's bag. This is only for
+    /// temporary letters, that a player is placing during his turn.
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
     public void RemoveLetter(int x, int y)
     {
         LetterScript letter = boardLetters[x, y];
-        boardLetters[x, y] = null;
         if (letter == null) return;
+        if (!(letter.state == LetterScript.State.ON_BOARD)) return;
 
-        PlayerScript player = GameObject.Find("Player").GetComponent<PlayerScript>();
-
-
-        for (int i = 0; i < player.hand.Length; i++)
-        {
-            if (player.hand[i] == null)
-            {
-                print("empty");
-                player.hand[i] = letter.gameObject;
-                break;
-            }
-        }
-        player.ArrangeHand();
+        boardLetters[x, y] = null;
+        PlayerScript player = playersList[0];
+        player.PutLetterInHand(letter);
         CheckForWordsAllAround(x, y);
         OnBoardChange();
     }
@@ -154,11 +226,15 @@ public class GameBoardScript : MonoBehaviour
         return null;
     }
 
+    /// <summary>
+    /// Checks for a vertical word at the given position
+    /// Returns a Word object if it found a word, null otherwise
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <returns></returns>
     public Word CheckForVerticalWord(int x, int y)
     {
-        /// Checks for a vertical word at the given position
-        /// Returns a Word object if it found a word, null otherwise
-
         if (boardLetters[x, y] == null) return null;
 
         string word = boardLetters[x, y].GetLetter();
@@ -196,11 +272,15 @@ public class GameBoardScript : MonoBehaviour
         return null;
     }
 
+    /// <summary>
+    /// This method scans for horizontal and vertical words at the given position
+    /// If it finds words, it adds them to the "possibleWords" list
+    /// It doesn't add if all letters are already permanent letters.
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
     public void CheckForWords(int x, int y)
     {
-        /// This method scans for horizontal and vertical words at the given position
-        /// If it finds words, it adds them to the "possibleWords" list
-
         if (boardLetters[x, y] == null) return;
 
         Word horizontalWord = CheckForHorizontalWord(x, y);
@@ -210,12 +290,15 @@ public class GameBoardScript : MonoBehaviour
         if (verticalWord != null) AddWordToList(verticalWord);
     }
 
+    /// <summary>
+    /// This method checks every word in the "possibleWords" list
+    /// to see if the word has been changed. If so, it removes it from the list.
+    /// Call this method every time there is a change applied
+    /// to the board
+    /// </summary>
     public void OnBoardChange()
     {
-        /// This method checks every word in the "possibleWords" list
-        /// to see if the word has been changed. If so, it removes it from the list
-        /// Call this method every time there is a change applied
-        /// to the board
+
         List<Word> toBeRemoved = new List<Word>();
         foreach (Word word in possibleWords)
         {
@@ -266,8 +349,14 @@ public class GameBoardScript : MonoBehaviour
         RemoveWordsFromListOfWords(possibleWords, toBeRemoved);
     }
 
+    /// <summary>
+    /// Add a Word object to the "possibleWords" list, only if it's not made of only permanent letters.
+    /// </summary>
+    /// <param name="w"></param>
     public void AddWordToList(Word w)
     {
+        if (w.IsMadeOfPermanentLetters()) return;
+
         /// Add a Word object to the "possibleWords" list and highlight it
         possibleWords.Add(w);
         w.Hightlight();
@@ -293,7 +382,9 @@ public class GameBoardScript : MonoBehaviour
         RemoveWordsFromListOfWords(originalList, listCopy);
     }
 
-
+    /// <summary>
+    /// Finish a turn, and place all possibleWords.
+    /// </summary>
     public void PlaceWords()
     {
         foreach (Word word in possibleWords)
@@ -302,10 +393,11 @@ public class GameBoardScript : MonoBehaviour
         }
         RemoveAllWords(possibleWords);
     }
-
 }
 
-
+/// <summary>
+/// A Word object, it represents a chain of letter objects, connected either horizontally or vertically.
+/// </summary>
 public class Word
 {
     public int x;
@@ -366,6 +458,15 @@ public class Word
         {
             letter.MakePermanent();
         }
+    }
+
+    public bool IsMadeOfPermanentLetters()
+    {
+        foreach (LetterScript letter in GetAllLetters())
+        {
+            if (!(letter.state == LetterScript.State.ON_BOARD_PERMANENTLY)) return false;
+        }
+        return true;
     }
 
 }

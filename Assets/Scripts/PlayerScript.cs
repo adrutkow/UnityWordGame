@@ -6,12 +6,12 @@ using UnityEngine;
 
 public class PlayerScript : MonoBehaviour
 {
-    public GameObject[] hand;
-    public GameObject letterPrefab;
+    public LetterScript[] hand;
     public Canvas canvas;
     public LetterScript currentSelectedLetter;
     public static PlayerScript playerScript;
     public bool selectedLetterThisFrame = false;
+    public const int HAND_SIZE = 8;
 
 
 
@@ -20,13 +20,8 @@ public class PlayerScript : MonoBehaviour
     {
         playerScript = this;
         canvas = GameObject.Find("Canvas").GetComponent<Canvas>();
-        hand = new GameObject[8];
-        for (int i = 0; i < 8; i++)
-        {
-            hand[i] = Instantiate(letterPrefab);
-            hand[i].GetComponent<LetterScript>().currentLetter = (int)Random.Range(0, 26);
-        }
-        ArrangeHand();
+        hand = new LetterScript[HAND_SIZE];
+
     }
 
     // Update is called once per frame
@@ -71,9 +66,9 @@ public class PlayerScript : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            foreach (GameObject lettergo in GameObject.FindGameObjectsWithTag("Letter"))
+            foreach (GameObject letterGO in GameObject.FindGameObjectsWithTag("Letter"))
             {
-                lettergo.GetComponent<LetterScript>().MakePermanent();
+                letterGO.GetComponent<LetterScript>().MakePermanent();
             }
         }
     }
@@ -98,7 +93,7 @@ public class PlayerScript : MonoBehaviour
 
             if (currentSelectedLetter != null && !UIHasBeenClicked)
             {
-                PlaceLetter(tilePosition[0], tilePosition[1]);
+                MoveLetter(tilePosition[0], tilePosition[1]);
                 currentSelectedLetter.Deselect();
                 return;
             }
@@ -175,18 +170,63 @@ public class PlayerScript : MonoBehaviour
         return list.ToArray();
     }
 
-    public void PlaceLetter(int x, int y)
+    /// <summary>
+    /// Move the player's current selected letter. It can be from the bag or from the board itself.
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    public void MoveLetter(int x, int y)
     {
+        // Prevent moving permanent letters
+        if (currentSelectedLetter.state == LetterScript.State.ON_BOARD_PERMANENTLY) return;
+
         for (int i = 0; i < hand.Length; i++)
         {
-            if (hand[i] == currentSelectedLetter.gameObject)
+            if (hand[i] == currentSelectedLetter)
             {
-                Debug.Log("found");
                 hand[i] = null;
                 break;
             }
         }
         GameBoardScript.gameBoard.AddLetter(currentSelectedLetter, x, y);
+    }
+
+    /// <summary>
+    /// Put a LetterScript object into the player's hand array. If not slot if given, it will try to put it in an empty slot.
+    /// </summary>
+    /// <param name="letter"></param>
+    /// <param name="slot"></param>
+    /// <returns>true if action was successful, false otherwise</returns>
+    public bool PutLetterInHand(LetterScript letter, int slot=-1)
+    {
+        // If given slot number is wrong, check if there is an empty slot available.
+        if (slot > HAND_SIZE || slot < 0)
+        {
+            slot = GetEmptyHandSlot();
+            if (slot == -1) return false;
+        }
+        if (hand[slot] != null) return false;
+
+        hand[slot] = letter;
+        letter.ChangeState(LetterScript.State.IN_HAND);
+        ArrangeHand();
+        return true;
+    }
+
+    /// <summary>
+    /// Find an empty slot in the player's hand, and return its index
+    /// </summary>
+    /// <returns>the index if found, -1 if no slot is available</returns>
+    public int GetEmptyHandSlot()
+    {
+        for (int i = 0; i < hand.Length; i++)
+        {
+            if (hand[i] == null)
+            {
+                return i;
+            }
+        }
+        return -1;
     }
 
 }

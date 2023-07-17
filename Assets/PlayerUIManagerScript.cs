@@ -7,6 +7,7 @@ public class PlayerUIManagerScript : MonoBehaviour
 {
 
     public GameObject placeWordButton;
+    public TextMeshProUGUI wordListText;
     TextMeshProUGUI placeWordButtonText;
 
     // Start is called before the first frame update
@@ -29,10 +30,14 @@ public class PlayerUIManagerScript : MonoBehaviour
         {
             placeWordButton.SetActive(false);
         }
+
+        placeWordButtonText.text = "Words so far:\n";
+
     }
 
     public void OnPlaceWordsButtonPressed()
     {
         GameBoardScript.gameBoard.PlaceWords();
+        GameBoardScript.gameBoard.RemoveAllWords(GameBoardScript.gameBoard.possibleWords);
     }
 }

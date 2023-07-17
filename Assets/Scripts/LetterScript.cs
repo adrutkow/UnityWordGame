@@ -12,8 +12,9 @@ public class LetterScript : MonoBehaviour
     public TextMesh textMesh;
     public SpriteRenderer letterSpriteRenderer;
     public bool isSelected;
-    public int[] oldPosition = new int[2] {-1, -1};
+    public int[] oldPosition = new int[2] { -1, -1 };
     public bool isPermanent = false;
+    public State state = State.IN_BAG;
 
     void Start()
     {
@@ -23,7 +24,7 @@ public class LetterScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
     public void ChangeLetter(int v)
@@ -40,6 +41,8 @@ public class LetterScript : MonoBehaviour
 
     public void Select()
     {
+        if (state == State.IN_BAG) return;
+
         if (isSelected)
         {
             Deselect();
@@ -76,9 +79,23 @@ public class LetterScript : MonoBehaviour
 
     public void MakePermanent()
     {
+        state = State.ON_BOARD_PERMANENTLY;
         isPermanent = true;
         GetComponent<SpriteRenderer>().color = Color.magenta;
+    }
 
+    public void ChangeState(State s)
+    {
+        state = s;
+    }
+
+    public enum State
+    {
+        IN_HAND,
+        IN_BAG,
+        ON_BOARD,
+        ON_BOARD_PERMANENTLY
     }
 
 }
+
