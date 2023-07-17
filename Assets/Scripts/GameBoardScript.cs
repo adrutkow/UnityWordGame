@@ -161,6 +161,7 @@ public class GameBoardScript : MonoBehaviour
     public void AddLetter(LetterScript letter, int x, int y)
     {
         // idk what i did here, have to fix
+        letter.GetComponent<Animator>().Play("LetterSpin", 0, 1);
         letter.transform.position = new Vector3(x * TILE_SIZE, y * TILE_SIZE);
         letter.transform.parent = transform;
 

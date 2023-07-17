@@ -55,6 +55,14 @@ public class LetterScript : MonoBehaviour
         GetComponent<SpriteRenderer>().color = Color.green;
         if (isPermanent) GetComponent<SpriteRenderer>().color = Color.yellow;
         player.selectedLetterThisFrame = true;
+        PlaySelectAnimation();
+    }
+
+    public void PlaySelectAnimation()
+    {
+        Animator animator = GetComponent<Animator>();
+        if (animator.GetCurrentAnimatorStateInfo(0).normalizedTime < 1) return;
+        animator.Play("LetterSpin", 0, 0);
     }
 
     public void Deselect()

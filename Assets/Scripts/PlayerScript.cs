@@ -46,7 +46,7 @@ public class PlayerScript : MonoBehaviour
         {
             if (hand[i] == null) continue;
             hand[i].transform.parent = canvasHand.transform;
-            hand[i].transform.position = canvasHand.transform.position + new Vector3(i * 0.8f - hand.Length * 0.4f + 0.4f, 0);
+            hand[i].transform.position = canvasHand.transform.position + new Vector3(i * 0.8f - hand.Length * 0.4f + 0.4f, 0, -1);
         }
     }
 
