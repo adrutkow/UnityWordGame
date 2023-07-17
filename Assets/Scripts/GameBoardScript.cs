@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEditor.SceneTemplate;
 using UnityEngine;
+using UnityEngine.Experimental.AI;
 
 public class GameBoardScript : MonoBehaviour
 {
@@ -119,6 +120,26 @@ public class GameBoardScript : MonoBehaviour
         }
         return false;
     }
+
+    public void PutLetterInBag(LetterScript letter)
+    {
+        if (letter == null) return;
+        if (!(letter.state == LetterScript.State.IN_HAND)) return;
+
+        for (int i = 0; i < PlayerScript.HAND_SIZE; i++)
+        {
+            if (letter == playersList[0].hand[i])
+            {
+                playersList[0].hand[i] = null;
+                letterBag.Add(letter);
+                letter.state = LetterScript.State.IN_BAG;
+                letter.gameObject.transform.position = new Vector3(-100, -100);
+                return;
+            }
+        }
+
+    }
+
 
     /// <summary>
     /// Checks if the given string exists in the current wordList.
@@ -356,6 +377,7 @@ public class GameBoardScript : MonoBehaviour
     public void AddWordToList(Word w)
     {
         if (w.IsMadeOfPermanentLetters()) return;
+        if (possibleWords.Contains(w)) return;
 
         /// Add a Word object to the "possibleWords" list and highlight it
         possibleWords.Add(w);
@@ -372,6 +394,10 @@ public class GameBoardScript : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Remove all possibleWords from a given list of words
+    /// </summary>
+    /// <param name="originalList"></param>
     public void RemoveAllWords(List<Word> originalList)
     {
         List<Word> listCopy = new List<Word>();
@@ -390,8 +416,26 @@ public class GameBoardScript : MonoBehaviour
         foreach (Word word in possibleWords)
         {
             word.MakePermanent();
+            completedWords.Add(word.GetWordString());
         }
         RemoveAllWords(possibleWords);
+    }
+
+    public void DebugInfo()
+    {
+        Debug.Log("possibleWords:"+possibleWords.Count);
+        foreach(Word word in possibleWords)
+        {
+            Debug.Log(word.GetWordString());
+        }
+
+        PlayerScript player = playersList[0];
+        for (int i = 0; i < PlayerScript.HAND_SIZE; i++)
+        {
+            PutLetterInBag(player.hand[i]);
+            GivePlayerLetterFromBag(player);
+        }
+
     }
 }
 
@@ -467,6 +511,20 @@ public class Word
             if (!(letter.state == LetterScript.State.ON_BOARD_PERMANENTLY)) return false;
         }
         return true;
+    }
+
+    /// <summary>
+    /// Get the word's content, the word itself as a string
+    /// </summary>
+    /// <returns>The word as a string</returns>
+    public string GetWordString()
+    {
+        string tempString = "";
+        foreach(LetterScript letter in GetAllLetters())
+        {
+            tempString += letter.GetLetter();
+        }
+        return tempString;
     }
 
 }

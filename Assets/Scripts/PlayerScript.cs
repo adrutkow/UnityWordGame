@@ -13,8 +13,6 @@ public class PlayerScript : MonoBehaviour
     public bool selectedLetterThisFrame = false;
     public const int HAND_SIZE = 8;
 
-
-
     // Start is called before the first frame update
     void Start()
     {
@@ -66,10 +64,7 @@ public class PlayerScript : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            foreach (GameObject letterGO in GameObject.FindGameObjectsWithTag("Letter"))
-            {
-                letterGO.GetComponent<LetterScript>().MakePermanent();
-            }
+            GameBoardScript.gameBoard.DebugInfo();
         }
     }
 
@@ -134,7 +129,6 @@ public class PlayerScript : MonoBehaviour
             currentSelectedLetter.Deselect();
             letter.Select();
         }
-
     }
 
     public bool HasTagBeenClicked(string tag = null)

@@ -31,7 +31,11 @@ public class PlayerUIManagerScript : MonoBehaviour
             placeWordButton.SetActive(false);
         }
 
-        placeWordButtonText.text = "Words so far:\n";
+        wordListText.text = "Words so far:\n";
+        foreach (string word in GameBoardScript.gameBoard.completedWords)
+        {
+            wordListText.text += "- " + word + "\n";
+        }
 
     }
 
