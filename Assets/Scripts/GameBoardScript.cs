@@ -56,12 +56,14 @@ public class GameBoardScript : MonoBehaviour
     /// </summary>
     void BuildBoard()
     {
+        GameObject bgTiles = GameObject.Find("BackgroundTiles");
         for (int y = 0; y < size[0]; y++)
         {
             for (int x = 0; x < size[1]; x++)
             {
                 GameObject temp = Instantiate(tile, new Vector3(x * TILE_SIZE, y * TILE_SIZE), Quaternion.identity);
                 temp.GetComponent<TileScript>().SetPosition(x, y);
+                temp.transform.parent = bgTiles.transform;
                 tiles[x, y] = temp.GetComponent<TileScript>();
             }
         }
@@ -161,7 +163,7 @@ public class GameBoardScript : MonoBehaviour
     public void AddLetter(LetterScript letter, int x, int y)
     {
         // idk what i did here, have to fix
-        letter.GetComponent<Animator>().Play("LetterSpin", 0, 1);
+        letter.ResetAnimation();
         letter.transform.position = new Vector3(x * TILE_SIZE, y * TILE_SIZE);
         letter.transform.parent = transform;
 
@@ -193,11 +195,14 @@ public class GameBoardScript : MonoBehaviour
         if (letter == null) return;
         if (!(letter.state == LetterScript.State.ON_BOARD)) return;
 
-        boardLetters[x, y] = null;
+        letter.ResetAnimation();
         PlayerScript player = playersList[0];
-        player.PutLetterInHand(letter);
-        CheckForWordsAllAround(x, y);
-        OnBoardChange();
+        if (player.PutLetterInHand(letter))
+        {
+            boardLetters[x, y] = null;
+            CheckForWordsAllAround(x, y);
+            OnBoardChange();
+        }
     }
 
     public void CheckForWordsAllAround(int x, int y)
@@ -380,6 +385,11 @@ public class GameBoardScript : MonoBehaviour
         if (w.IsMadeOfPermanentLetters()) return;
         if (possibleWords.Contains(w)) return;
 
+        foreach (Word word in possibleWords)
+        {
+            if (word.GetWordString() == w.GetWordString()) return;
+        }
+
         /// Add a Word object to the "possibleWords" list and highlight it
         possibleWords.Add(w);
         w.Hightlight();
@@ -438,6 +448,17 @@ public class GameBoardScript : MonoBehaviour
         }
 
     }
+
+    public int CalculateTotalScore()
+    {
+        int totalScore = 0;
+        foreach (Word w in possibleWords)
+        {
+            totalScore += w.CalculateScore();
+        }
+        return totalScore;
+    }
+
 }
 
 /// <summary>
@@ -523,9 +544,20 @@ public class Word
         string tempString = "";
         foreach(LetterScript letter in GetAllLetters())
         {
+            if (letter == null) return "";
             tempString += letter.GetLetter();
         }
         return tempString;
+    }
+
+    public int CalculateScore()
+    {
+        int score = 0;
+        foreach (LetterScript letter in GetAllLetters())
+        {
+            score += Data.values[letter.currentLetter];
+        }
+        return score;
     }
 
 }

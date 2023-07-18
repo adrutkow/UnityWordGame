@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.SqlTypes;
+using Unity.VisualScripting.Antlr3.Runtime;
 using UnityEngine;
 using UnityEngine.U2D;
 
@@ -9,6 +10,7 @@ public class LetterScript : MonoBehaviour
     public Sprite[] letterSprites0;
     public Sprite[] letterSprites1;
     public int currentLetter = 0;
+    bool currentSpriteTurn = false;
     public TextMesh textMesh;
     public SpriteRenderer letterSpriteRenderer;
     public bool isSelected;
@@ -24,6 +26,19 @@ public class LetterScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (Time.frameCount % 180 == 0)
+        {
+            SwapLetterSprite();
+        }
+    }
+    
+    public void SwapLetterSprite()
+    {
+        currentSpriteTurn = !currentSpriteTurn;
+
+        if (currentSpriteTurn) letterSpriteRenderer.sprite = letterSprites0[currentLetter];
+        if (!currentSpriteTurn) letterSpriteRenderer.sprite = letterSprites1[currentLetter];
+
 
     }
 
@@ -60,9 +75,16 @@ public class LetterScript : MonoBehaviour
 
     public void PlaySelectAnimation()
     {
+        if (state == State.ON_BOARD_PERMANENTLY) return;
         Animator animator = GetComponent<Animator>();
         if (animator.GetCurrentAnimatorStateInfo(0).normalizedTime < 1) return;
         animator.Play("LetterSpin", 0, 0);
+    }
+
+    public void ResetAnimation()
+    {
+        transform.rotation = new Quaternion(0, 0, 0, 0);
+        GetComponent<Animator>().Play("LetterSpin", 0, 1);
     }
 
     public void Deselect()

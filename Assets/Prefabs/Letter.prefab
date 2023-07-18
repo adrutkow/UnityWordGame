@@ -208,6 +208,7 @@ GameObject:
   - component: {fileID: -948705974469844901}
   - component: {fileID: 5258766826963778548}
   - component: {fileID: 7238306677338843158}
+  - component: {fileID: 7857609448468154925}
   m_Layer: 0
   m_Name: Letter
   m_TagString: Letter
@@ -429,3 +430,14 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
+--- !u!210 &7857609448468154925
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8757907727309119180}
+  m_Enabled: 1
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 100

@@ -23,9 +23,11 @@ public class PlayerUIManagerScript : MonoBehaviour
 
     public void tick()
     {
+        // TODO: Bad performance here, to fix later
         if (GameBoardScript.gameBoard.possibleWords.Count != 0)
         {
             placeWordButton.SetActive(true);
+            placeWordButtonText.text = "Place Word!\n" + GameBoardScript.gameBoard.CalculateTotalScore() + " points";
         } else
         {
             placeWordButton.SetActive(false);
