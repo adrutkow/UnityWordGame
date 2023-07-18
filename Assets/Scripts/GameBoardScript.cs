@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using Unity.VisualScripting;
 using UnityEditor.SceneTemplate;
 using UnityEngine;
@@ -23,6 +24,8 @@ public class GameBoardScript : MonoBehaviour
     public List<LetterScript> letterBag;
     public List<PlayerScript> playersList;
     public int turn = 0;
+    public int starTilePosition = 12;
+    public bool isFirstTurn = true;
 
 
     void Start()
@@ -69,6 +72,7 @@ public class GameBoardScript : MonoBehaviour
             }
         }
         tiles[12, 12].MakeStarTile();
+        starTilePosition = 12;
     }
 
     void SpawnLetters(int count = 40)
@@ -91,6 +95,7 @@ public class GameBoardScript : MonoBehaviour
 
     void RoundStart()
     {
+        isFirstTurn = true;
         foreach(PlayerScript player in playersList)
         {
             for (int i = 0; i < PlayerScript.HAND_SIZE; i++)
@@ -258,7 +263,7 @@ public class GameBoardScript : MonoBehaviour
         if (IsValidWord(word))
         {
             Word tempWord = new Word(leftMostX, y, true, word.Length);
-            AddWordToList(tempWord);
+            return tempWord;
         }
 
         return null;
@@ -324,6 +329,29 @@ public class GameBoardScript : MonoBehaviour
         Word horizontalWord = CheckForHorizontalWord(x, y);
         Word verticalWord = CheckForVerticalWord(x, y);
 
+        if (isFirstTurn)
+        {
+            Debug.Log("Checking if it's on star tile...");
+            if (verticalWord != null)
+            {
+                if (!verticalWord.IsWordOnStarTile())
+                {
+                    Debug.Log("Not on star tile!");
+                    verticalWord.invalid = true;
+                }
+            }
+            if (horizontalWord != null)
+            {
+                if (!horizontalWord.IsWordOnStarTile())
+                {
+                    Debug.Log("Not on star tile!");
+                    horizontalWord.invalid = true;
+                }
+            }
+
+        }
+
+            
         if (horizontalWord != null) AddWordToList(horizontalWord);
         if (verticalWord != null) AddWordToList(verticalWord);
     }
@@ -502,6 +530,7 @@ public class Word
     public bool isHorizontal;
     public int length;
     public List<GameObject> highlightTiles = new List<GameObject>();
+    public bool invalid = false;
 
     public Word(int _x, int _y, bool _isHorizontal, int _length)
     {
@@ -516,6 +545,10 @@ public class Word
         for (int i = 0; i < length; i++)
         {
             GameObject temp = GameObject.Instantiate(GameBoardScript.gameBoard.highlightTile);
+            if (invalid)
+            {
+                temp.GetComponent<SpriteRenderer>().color = Color.gray;
+            }
 
             float ts = GameBoardScript.TILE_SIZE;
             if (isHorizontal) temp.transform.position = new Vector3((x + i) * ts, y * ts);
@@ -564,6 +597,51 @@ public class Word
             if (!(letter.state == LetterScript.State.ON_BOARD_PERMANENTLY)) return false;
         }
         return true;
+    }
+
+    public bool IsConnectedToPermanentLetter()
+    {
+        if (isHorizontal)
+        {
+            // If the letter at the beginning of the word is permanent, true
+            if (GameBoardScript.gameBoard.boardLetters[x - 1, y] != null)
+            {
+                if (GameBoardScript.gameBoard.boardLetters[x - 1, y].state == LetterScript.State.ON_BOARD_PERMANENTLY) return true;
+            }
+
+            // If the letter at the end of the word is permanent, true
+            if (GameBoardScript.gameBoard.boardLetters[x + 1 + length, y] != null)
+            {
+                if (GameBoardScript.gameBoard.boardLetters[x + 1 + length, y].state == LetterScript.State.ON_BOARD_PERMANENTLY) return true;
+            }
+        }
+
+        if (!isHorizontal)
+        {
+            // If the letter above the word is permanent, true
+            if (GameBoardScript.gameBoard.boardLetters[x, y + 1] != null)
+            {
+                if (GameBoardScript.gameBoard.boardLetters[x, y + 1].state == LetterScript.State.ON_BOARD_PERMANENTLY) return true;
+            }
+
+            // If the letter at the bottom of the word is permanent, true
+            if (GameBoardScript.gameBoard.boardLetters[x, y - 1 - length] != null)
+            {
+                if (GameBoardScript.gameBoard.boardLetters[x, y - 1 - length].state == LetterScript.State.ON_BOARD_PERMANENTLY) return true;
+            }
+        }
+
+        return false;
+    }
+
+    public bool IsWordOnStarTile()
+    {
+        int starPos = GameBoardScript.gameBoard.starTilePosition;
+        foreach (LetterScript letter in GetAllLetters())
+        {
+            if (GameBoardScript.gameBoard.boardLetters[starPos, starPos] == letter) return true;
+        }
+        return false;
     }
 
     /// <summary>

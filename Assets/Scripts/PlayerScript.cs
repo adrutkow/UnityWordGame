@@ -83,7 +83,7 @@ public class PlayerScript : MonoBehaviour
     void OnLeftClick()
     {
         int[] tilePosition = GetMouseTilePosition();
-        Debug.Log(tilePosition[0] + "," + tilePosition[1]);
+        //Debug.Log(tilePosition[0] + "," + tilePosition[1]);
 
         RaycastHit2D[] clickedLetters = GetClickedElements("Letter");
         bool UIHasBeenClicked = HasTagBeenClicked("UI");
@@ -177,7 +177,7 @@ public class PlayerScript : MonoBehaviour
     }
 
     /// <summary>
-    /// Move the player's current selected letter. It can be from the bag or from the board itself.
+    /// Move the player's current selected letter. It can be from the hand or from the board itself.
     /// </summary>
     /// <param name="x"></param>
     /// <param name="y"></param>
@@ -278,6 +278,7 @@ public class PlayerScript : MonoBehaviour
 
     public void EndTurn()
     {
+        GameBoardScript.gameBoard.isFirstTurn = false;
         HideLetters();
     }
 

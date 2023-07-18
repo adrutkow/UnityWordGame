@@ -24,6 +24,14 @@ public class PlayerUIManagerScript : MonoBehaviour
         {
             placeWordButton.SetActive(true);
             placeWordButtonText.text = "Place Word!\n" + GameBoardScript.gameBoard.CalculateTotalScore() + " points";
+
+            if (GameBoardScript.gameBoard.isFirstTurn)
+            {
+                if (GameBoardScript.gameBoard.possibleWords[0].invalid)
+                {
+                    placeWordButtonText.text = "The first word must be on a star tile!";
+                }
+            }
         } else
         {
             placeWordButton.SetActive(false);
