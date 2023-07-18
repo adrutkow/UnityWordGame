@@ -329,29 +329,41 @@ public class GameBoardScript : MonoBehaviour
         Word horizontalWord = CheckForHorizontalWord(x, y);
         Word verticalWord = CheckForVerticalWord(x, y);
 
+        // If it's the first turn, and the word isn't on a star tile, make it invalid
         if (isFirstTurn)
         {
-            Debug.Log("Checking if it's on star tile...");
             if (verticalWord != null)
             {
                 if (!verticalWord.IsWordOnStarTile())
                 {
-                    Debug.Log("Not on star tile!");
-                    verticalWord.invalid = true;
+                    verticalWord.MakeInvalid("Not on a star tile!");
                 }
             }
             if (horizontalWord != null)
             {
                 if (!horizontalWord.IsWordOnStarTile())
                 {
-                    Debug.Log("Not on star tile!");
-                    horizontalWord.invalid = true;
+                    horizontalWord.MakeInvalid("Not on a star tile!");
                 }
             }
-
         }
 
-            
+        if (horizontalWord != null)
+        {
+            if (!horizontalWord.isStraight())
+            {
+                horizontalWord.MakeInvalid("Not straight!");
+            }
+        }
+
+        if (verticalWord != null)
+        {
+            if (!verticalWord.isStraight())
+            {
+                verticalWord.MakeInvalid("Not straight!");
+            }
+        }
+
         if (horizontalWord != null) AddWordToList(horizontalWord);
         if (verticalWord != null) AddWordToList(verticalWord);
     }
@@ -368,6 +380,17 @@ public class GameBoardScript : MonoBehaviour
         List<Word> toBeRemoved = new List<Word>();
         foreach (Word word in possibleWords)
         {
+            // TEST: re-check every word for straightness
+            if (word.isStraight())
+            {
+                if (word.isInvalid) word.MakeValid();
+            }
+            else
+            {
+                if (!word.isInvalid) word.MakeInvalid();
+            }
+
+
             // If any of the letters are missing, remove the word
             int ix = 0;
             int iy = 0;
@@ -458,12 +481,6 @@ public class GameBoardScript : MonoBehaviour
         RemoveWordsFromListOfWords(originalList, listCopy);
     }
 
-
-    public void testtestendturn()
-    {
-
-    }
-
     /// <summary>
     /// Finish a turn, and place all possibleWords.
     /// </summary>
@@ -505,7 +522,6 @@ public class GameBoardScript : MonoBehaviour
             PutLetterInBag(player.hand[i]);
             GivePlayerLetterFromBag(player);
         }
-
     }
 
     public int CalculateTotalScore()
@@ -517,7 +533,6 @@ public class GameBoardScript : MonoBehaviour
         }
         return totalScore;
     }
-
 }
 
 /// <summary>
@@ -530,7 +545,10 @@ public class Word
     public bool isHorizontal;
     public int length;
     public List<GameObject> highlightTiles = new List<GameObject>();
-    public bool invalid = false;
+    public bool isInvalid = false;
+    public List<string> invalidReasons = new List<string>();
+    Color HIGHLIGHT_COLOR = new Color(0.509804f, 0.1826273f, 0.6617778f);
+    Color INVALID_HIGHLIGHT_COLOR = Color.gray;
 
     public Word(int _x, int _y, bool _isHorizontal, int _length)
     {
@@ -545,15 +563,9 @@ public class Word
         for (int i = 0; i < length; i++)
         {
             GameObject temp = GameObject.Instantiate(GameBoardScript.gameBoard.highlightTile);
-            if (invalid)
-            {
-                temp.GetComponent<SpriteRenderer>().color = Color.gray;
-            }
-
             float ts = GameBoardScript.TILE_SIZE;
             if (isHorizontal) temp.transform.position = new Vector3((x + i) * ts, y * ts);
             if (!isHorizontal) temp.transform.position = new Vector3(x * ts, (y - i) * ts);
-
             highlightTiles.Add(temp);
         }
     }
@@ -580,6 +592,26 @@ public class Word
         }
 
         return temp;
+    }
+
+    public void MakeInvalid(string reason="Unknown")
+    {
+        isInvalid = true;
+        invalidReasons.Add(reason);
+        foreach (GameObject HLtile in highlightTiles)
+        {
+            HLtile.GetComponent<SpriteRenderer>().color = INVALID_HIGHLIGHT_COLOR;
+        }
+    }
+
+    public void MakeValid()
+    {
+        isInvalid = false;
+        invalidReasons.Clear();
+        foreach (GameObject HLtile in highlightTiles)
+        {
+            HLtile.GetComponent<SpriteRenderer>().color = HIGHLIGHT_COLOR;
+        }
     }
 
     public void MakePermanent()
@@ -642,6 +674,64 @@ public class Word
             if (GameBoardScript.gameBoard.boardLetters[starPos, starPos] == letter) return true;
         }
         return false;
+    }
+
+    /// <summary>
+    /// Method to determine whether the word has attached non-permanent letters to its sides, to prevent "zig-zaggy" turns.
+    /// </summary>
+    /// <returns></returns>
+    public bool isStraight()
+    {
+        LetterScript scanLetter;
+        if (isHorizontal)
+        {
+            for (int i = 0; i < length; i++)
+            {
+                scanLetter = GameBoardScript.gameBoard.boardLetters[x + i, y - 1];
+                if (scanLetter != null)
+                {
+                    if (scanLetter.state != LetterScript.State.ON_BOARD_PERMANENTLY)
+                    {
+                        return false;
+                    }
+                }
+
+                scanLetter = GameBoardScript.gameBoard.boardLetters[x + i, y + 1];
+                if (scanLetter != null)
+                {
+                    if (scanLetter.state != LetterScript.State.ON_BOARD_PERMANENTLY)
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        if (!isHorizontal)
+        {
+            for (int i = 0; i < length; i++)
+            {
+                scanLetter = GameBoardScript.gameBoard.boardLetters[x + 1, y - i];
+                if (scanLetter != null)
+                {
+                    if (scanLetter.state != LetterScript.State.ON_BOARD_PERMANENTLY)
+                    {
+                        return false;
+                    }
+                }
+
+                scanLetter = GameBoardScript.gameBoard.boardLetters[x - 1, y - i];
+                if (scanLetter != null)
+                {
+                    if (scanLetter.state != LetterScript.State.ON_BOARD_PERMANENTLY)
+                    {
+                        return false;
+                    }
+                }
+
+            }
+        }
+        return true;
     }
 
     /// <summary>

@@ -19,19 +19,26 @@ public class PlayerUIManagerScript : MonoBehaviour
 
     public void tick()
     {
+        placeWordButtonText.text = "";
         // TODO: Bad performance here, to fix later
         if (GameBoardScript.gameBoard.possibleWords.Count != 0)
         {
-            placeWordButton.SetActive(true);
-            placeWordButtonText.text = "Place Word!\n" + GameBoardScript.gameBoard.CalculateTotalScore() + " points";
 
-            if (GameBoardScript.gameBoard.isFirstTurn)
+            bool hasInvalid = false;
+            foreach (Word word in GameBoardScript.gameBoard.possibleWords)
             {
-                if (GameBoardScript.gameBoard.possibleWords[0].invalid)
+                if (word.isInvalid)
                 {
-                    placeWordButtonText.text = "The first word must be on a star tile!";
+                    hasInvalid = true;
+                    foreach (string reason in word.invalidReasons)
+                    {
+                        placeWordButtonText.text += reason;
+                    }
                 }
             }
+
+            placeWordButton.SetActive(true);
+            if (!hasInvalid) placeWordButtonText.text = "Place Word!\n" + GameBoardScript.gameBoard.CalculateTotalScore() + " points";
         } else
         {
             placeWordButton.SetActive(false);
