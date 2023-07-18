@@ -9,18 +9,17 @@ public class CameraScript : MonoBehaviour
     Camera cam;
     bool drag = false;
     public bool firstClickedNothing = false;
-    PlayerScript player;
 
     // Start is called before the first frame update
     void Start()
     {
         cam = GetComponent<Camera>();
-        player = GameObject.Find("Player").GetComponent<PlayerScript>();
     }
 
     // Update is called once per frame
     void Update()
     {
+        PlayerScript player = GameBoardScript.gameBoard.GetCurrentTurnPlayer();
         if (Input.GetMouseButtonDown(0))
         {
             firstClickedNothing = !player.HasTagBeenClicked("UI") & !player.HasTagBeenClicked("Letter");

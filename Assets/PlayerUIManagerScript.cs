@@ -8,17 +8,13 @@ public class PlayerUIManagerScript : MonoBehaviour
 
     public GameObject placeWordButton;
     public TextMeshProUGUI wordListText;
+    public TextMeshProUGUI yourTurnText;
     TextMeshProUGUI placeWordButtonText;
 
     // Start is called before the first frame update
     void Start()
     {
         placeWordButtonText = placeWordButton.GetComponentInChildren<TextMeshProUGUI>();
-    }
-
-    private void Update()
-    {
-        tick();
     }
 
     public void tick()
@@ -39,11 +35,15 @@ public class PlayerUIManagerScript : MonoBehaviour
             wordListText.text += "- " + word + "\n";
         }
 
+        // If it's player0's turn, show "Your turn!" text
+        //yourTurnText.gameObject.SetActive(GameBoardScript.gameBoard.turn == 0);
+
+        yourTurnText.text = "Player " + GameBoardScript.gameBoard.turn + "'s turn!";
     }
 
     public void OnPlaceWordsButtonPressed()
     {
-        GameBoardScript.gameBoard.PlaceWords();
+        GameBoardScript.gameBoard.GameEndTurn();
         GameBoardScript.gameBoard.RemoveAllWords(GameBoardScript.gameBoard.possibleWords);
     }
 }

@@ -63,7 +63,7 @@ public class LetterScript : MonoBehaviour
             Deselect();
             return;
         }
-        PlayerScript player = GameObject.Find("Player").GetComponent<PlayerScript>();
+        PlayerScript player = GameBoardScript.gameBoard.GetCurrentTurnPlayer();
         isSelected = true;
         if (player.currentSelectedLetter != null) player.currentSelectedLetter.Deselect();
         player.currentSelectedLetter = this;
@@ -90,7 +90,7 @@ public class LetterScript : MonoBehaviour
     public void Deselect()
     {
         isSelected = false;
-        PlayerScript player = GameObject.Find("Player").GetComponent<PlayerScript>();
+        PlayerScript player = GameBoardScript.gameBoard.GetCurrentTurnPlayer();
         player.currentSelectedLetter = null;
         GetComponent<SpriteRenderer>().color = Color.white;
         if (isPermanent) GetComponent<SpriteRenderer>().color = Color.magenta;

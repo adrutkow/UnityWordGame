@@ -22,6 +22,7 @@ public class GameBoardScript : MonoBehaviour
     public string[] wordList;
     public List<LetterScript> letterBag;
     public List<PlayerScript> playersList;
+    public int turn = 0;
 
 
     void Start()
@@ -96,7 +97,18 @@ public class GameBoardScript : MonoBehaviour
             {
                 GivePlayerLetterFromBag(player);
             }
+            player.HideLetters();
         }
+        GetCurrentTurnPlayer().StartTurn();
+    }
+
+    public PlayerScript GetCurrentTurnPlayer()
+    {
+        foreach (PlayerScript player in playersList)
+        {
+            if (player.playerID == turn) return player;
+        }
+        return null;
     }
 
     /// <summary>
@@ -105,7 +117,6 @@ public class GameBoardScript : MonoBehaviour
     /// <param name="player">true if successful, false otherwise</param>
     public bool GivePlayerLetterFromBag(PlayerScript player)
     {
-        player = GameObject.Find("Player").GetComponent<PlayerScript>();
         if (letterBag.Count == 0) return false;
 
         for (int i = 0; i < PlayerScript.HAND_SIZE; i++)
@@ -196,7 +207,7 @@ public class GameBoardScript : MonoBehaviour
         if (!(letter.state == LetterScript.State.ON_BOARD)) return;
 
         letter.ResetAnimation();
-        PlayerScript player = playersList[0];
+        PlayerScript player = GetCurrentTurnPlayer();
         if (player.PutLetterInHand(letter))
         {
             boardLetters[x, y] = null;
@@ -419,10 +430,30 @@ public class GameBoardScript : MonoBehaviour
         RemoveWordsFromListOfWords(originalList, listCopy);
     }
 
+
+    public void testtestendturn()
+    {
+
+    }
+
     /// <summary>
     /// Finish a turn, and place all possibleWords.
     /// </summary>
-    public void PlaceWords()
+    public void GameEndTurn()
+    {
+        PlaceAllPossibleWords();
+        GetCurrentTurnPlayer().EndTurn();
+
+        turn++;
+        if (turn > playersList.Count - 1)
+        {
+            turn = 0;
+        }
+
+        GetCurrentTurnPlayer().StartTurn();
+    }
+
+    public void PlaceAllPossibleWords()
     {
         foreach (Word word in possibleWords)
         {
@@ -440,7 +471,7 @@ public class GameBoardScript : MonoBehaviour
             Debug.Log(word.GetWordString());
         }
 
-        PlayerScript player = playersList[0];
+        PlayerScript player = GetCurrentTurnPlayer();
         for (int i = 0; i < PlayerScript.HAND_SIZE; i++)
         {
             PutLetterInBag(player.hand[i]);

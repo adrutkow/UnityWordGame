@@ -10,22 +10,31 @@ public class PlayerScript : MonoBehaviour
     public Canvas canvas;
     public LetterScript currentSelectedLetter;
     public static PlayerScript playerScript;
+    PlayerUIManagerScript playerUIManager;
     public bool selectedLetterThisFrame = false;
     public const int HAND_SIZE = 8;
+    public int playerID;
+    static int playerIDCounter = 0;
 
     // Start is called before the first frame update
     void Start()
     {
         playerScript = this;
+        playerUIManager = transform.GetChild(0).GetComponent<PlayerUIManagerScript>();
         canvas = GameObject.Find("Canvas").GetComponent<Canvas>();
         hand = new LetterScript[HAND_SIZE];
-
+        playerID = playerIDCounter;
+        playerIDCounter++;
     }
 
     // Update is called once per frame
     void Update()
     {
-        InputManager();
+        if (GameBoardScript.gameBoard.turn == playerID)
+        {
+            InputManager();
+            playerUIManager.tick();
+        }
     }
 
     public int[] GetMouseTilePosition()
@@ -37,6 +46,9 @@ public class PlayerScript : MonoBehaviour
         return new int[2] { x, y };
     }
 
+    /// <summary>
+    /// Change position of player's letters from his hand to the UI's hand.
+    /// </summary>
     public void ArrangeHand()
     {
         GameObject canvasHand = GameObject.Find("Hand");
@@ -221,6 +233,52 @@ public class PlayerScript : MonoBehaviour
             }
         }
         return -1;
+    }
+
+    /// <summary>
+    /// Hide the player's hand, currently used for local multiplayer, to not show everyone's hand at once.
+    /// </summary>
+    public void HideLetters()
+    {
+        foreach (LetterScript letter in hand)
+        {
+            if (letter == null) continue;
+            letter.gameObject.SetActive(false);
+        }
+    }
+
+    /// <summary>
+    /// Show the player's hand, currently used for local multiplayer, to not show everyone's hand at once.
+    /// </summary>
+    public void UnhideLetters()
+    {
+        foreach (LetterScript letter in hand)
+        {
+            if (letter == null) continue;
+            letter.gameObject.SetActive(true);
+        }
+    }
+
+    public void FillEmptySpotsInHand()
+    {
+        for (int i = 0; i < PlayerScript.HAND_SIZE; i++)
+        {
+            if (hand[i] == null)
+            {
+                GameBoardScript.gameBoard.GivePlayerLetterFromBag(this);
+            }
+        }
+    }
+
+    public void StartTurn()
+    {
+        FillEmptySpotsInHand();
+        UnhideLetters();
+    }
+
+    public void EndTurn()
+    {
+        HideLetters();
     }
 
 }
