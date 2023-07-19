@@ -1,10 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEditor.SceneTemplate;
 using UnityEngine;
-using UnityEngine.Experimental.AI;
 
 public class GameBoardScript : MonoBehaviour
 {
@@ -80,7 +81,7 @@ public class GameBoardScript : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             LetterScript newLetter = Instantiate(letterPrefab).GetComponent<LetterScript>();
-            newLetter.currentLetter = Random.Range(0, 26);
+            newLetter.currentLetter = UnityEngine.Random.Range(0, 12);
             letterBag.Add(newLetter);
         }
     }
@@ -368,6 +369,33 @@ public class GameBoardScript : MonoBehaviour
         if (verticalWord != null) AddWordToList(verticalWord);
     }
 
+    public bool HasLoneLetters()
+    {
+        LetterScript letter;
+        bool found = false;
+        foreach (GameObject letterGO in GameObject.FindGameObjectsWithTag("Letter"))
+        {
+            letter = letterGO.GetComponent<LetterScript>();
+            if (letter.state != LetterScript.State.ON_BOARD) continue;
+            Debug.Log("possiblewords:" + possibleWords);
+
+            found = false;
+            foreach(Word w in possibleWords)
+            {
+                if (w.isLetterInWord(letter))
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (found) continue;
+            return true;
+        }
+        return false;
+    }
+
+
+
     /// <summary>
     /// This method checks every word in the "possibleWords" list
     /// to see if the word has been changed. If so, it removes it from the list.
@@ -381,6 +409,7 @@ public class GameBoardScript : MonoBehaviour
         foreach (Word word in possibleWords)
         {
             // TEST: re-check every word for straightness
+            // Have to take care of specific cases
             if (word.isStraight())
             {
                 if (word.isInvalid) word.MakeValid();
@@ -389,7 +418,6 @@ public class GameBoardScript : MonoBehaviour
             {
                 if (!word.isInvalid) word.MakeInvalid();
             }
-
 
             // If any of the letters are missing, remove the word
             int ix = 0;
@@ -522,6 +550,8 @@ public class GameBoardScript : MonoBehaviour
             PutLetterInBag(player.hand[i]);
             GivePlayerLetterFromBag(player);
         }
+
+        Debug.Log("LONE:" + HasLoneLetters());
     }
 
     public int CalculateTotalScore()
@@ -757,6 +787,21 @@ public class Word
             score += Data.values[letter.currentLetter];
         }
         return score;
+    }
+
+    public bool isLetterInWord(LetterScript letter)
+    {
+        Debug.Log(letter.GetLetter() + " is " + letter.GetLetter() + " ?");
+
+        foreach (LetterScript l in GetAllLetters())
+        {
+            if (ReferenceEquals(letter, l))
+            {
+                Debug.Log(letter.GetLetter() + " is " + letter.GetLetter());
+                return true;
+            }
+        }
+        return false;
     }
 
 }
