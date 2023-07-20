@@ -76,6 +76,7 @@ public class PlayerScript : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
+            ArrangeHand();
             GameBoardScript.gameBoard.DebugInfo();
         }
     }
@@ -274,6 +275,7 @@ public class PlayerScript : MonoBehaviour
     {
         FillEmptySpotsInHand();
         UnhideLetters();
+        ArrangeHand();
     }
 
     public void EndTurn()

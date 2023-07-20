@@ -181,7 +181,7 @@ public class GameBoardScript : MonoBehaviour
     public void AddLetter(LetterScript letter, int x, int y)
     {
         // idk what i did here, have to fix
-        letter.ResetAnimation();
+        //
         letter.transform.position = new Vector3(x * TILE_SIZE, y * TILE_SIZE);
         letter.transform.parent = transform;
 
@@ -193,6 +193,8 @@ public class GameBoardScript : MonoBehaviour
 
         letter.oldPosition[0] = x;
         letter.oldPosition[1] = y;
+
+        letter.ResetAnimation();
 
         boardLetters[x, y] = letter;
         letter.ChangeState(LetterScript.State.ON_BOARD);
@@ -326,7 +328,7 @@ public class GameBoardScript : MonoBehaviour
     /// <param name="y"></param>
     public void CheckForWords(int x, int y)
     {
-        if (boardLetters[x, y] == null) return;
+        if (boardLetters[x, y] == null) return; 
 
         Word horizontalWord = CheckForHorizontalWord(x, y);
         Word verticalWord = CheckForVerticalWord(x, y);
@@ -587,8 +589,14 @@ public class GameBoardScript : MonoBehaviour
     /// </summary>
     public void GameEndTurn()
     {
+/*        foreach (Word w in possibleWords)
+        {
+            w.PlayLockAnimation();
+        }*/
+
         PlaceAllPossibleWords();
         GetCurrentTurnPlayer().EndTurn();
+
 
         turnScore = 0;
         isTurnValid = false;
@@ -893,6 +901,15 @@ public class Word
             if (w.isLetterInWord(letter)) return true;
         }
         return false;
+    }
+
+    public void PlayLockAnimation()
+    {
+        foreach (LetterScript l in GetAllLetters())
+        {
+            l.ResetAnimation();
+            //l.GetComponent<Animator>().Play("LockAnimation", 0, 0);
+        }
     }
 
 }

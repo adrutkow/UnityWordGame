@@ -30,16 +30,15 @@ public class LetterScript : MonoBehaviour
         {
             SwapLetterSprite();
         }
+        GetComponent<Animator>().StopPlayback();
+        Debug.Log(GetComponent<Animator>().GetCurrentAnimatorClipInfo(0)[0].clip.name);
     }
-    
+
     public void SwapLetterSprite()
     {
         currentSpriteTurn = !currentSpriteTurn;
-
         if (currentSpriteTurn) letterSpriteRenderer.sprite = letterSprites0[currentLetter];
         if (!currentSpriteTurn) letterSpriteRenderer.sprite = letterSprites1[currentLetter];
-
-
     }
 
     public void ChangeLetter(int v)
@@ -83,8 +82,9 @@ public class LetterScript : MonoBehaviour
 
     public void ResetAnimation()
     {
+        Debug.Log("RESETANIM");
         transform.rotation = new Quaternion(0, 0, 0, 0);
-        GetComponent<Animator>().Play("LetterSpin", 0, 1);
+        GetComponent<Animator>().Play("Default", 0, 1);
     }
 
     public void Deselect()
