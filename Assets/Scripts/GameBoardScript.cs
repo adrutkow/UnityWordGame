@@ -529,6 +529,7 @@ public class GameBoardScript : MonoBehaviour
             }
         }
 
+
     }
 
     /// <summary>
@@ -589,6 +590,9 @@ public class GameBoardScript : MonoBehaviour
         PlaceAllPossibleWords();
         GetCurrentTurnPlayer().EndTurn();
 
+        turnScore = 0;
+        isTurnValid = false;
+        invalidReasons.Clear();
         turn++;
         if (turn > playersList.Count - 1)
         {

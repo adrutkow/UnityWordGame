@@ -52,7 +52,7 @@ public class PlayerUIManagerScript : MonoBehaviour
         }
         else
         {
-            placeWordButton.SetActive(true);
+            placeWordButton.SetActive(false);
             foreach (string reason in GameBoardScript.gameBoard.invalidReasons)
             {
                 placeWordButtonText.text += reason + "\n";
@@ -74,6 +74,7 @@ public class PlayerUIManagerScript : MonoBehaviour
 
     public void OnPlaceWordsButtonPressed()
     {
+        if (!GameBoardScript.gameBoard.isTurnValid) return;
         GameBoardScript.gameBoard.GameEndTurn();
         GameBoardScript.gameBoard.RemoveAllWords(GameBoardScript.gameBoard.possibleWords);
     }
