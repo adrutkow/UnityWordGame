@@ -51,16 +51,30 @@ public class PlayerScript : MonoBehaviour
     /// </summary>
     public void ArrangeHand()
     {
-        Debug.Log("ARRANGED");
-        GameObject canvasHand = GameObject.Find("Hand");
-        float offset = hand.Length * 0.4f;
-        if (hand.Length % 2 == 0) offset += 0.4f;
+        GameObject canvasHand = GameObject.Find("HandLetters");
+        canvasHand.GetComponent<RectTransform>().anchoredPosition = new Vector3(0, 0, 0);
+
+        float dist_value = 0.8f * CameraScript.mainCamera.GetComponent<Camera>().orthographicSize / 3.85f;
+
+        //float offset = hand.Length * dist_value;
+        //if (hand.Length % 2 == 0) offset += dist_value;
+        int emptySlots = 0;
+        int s = 0;
         for (int i = 0; i < hand.Length; i++)
         {
-            if (hand[i] == null) continue;
+            if (hand[i] == null)
+            {
+                emptySlots++;
+                continue;
+            }
             hand[i].transform.parent = canvasHand.transform;
-            hand[i].transform.position = canvasHand.transform.position + new Vector3(i * 0.8f - hand.Length * 0.4f + 0.4f, 0, -1);
+            hand[i].transform.position = canvasHand.transform.position + new Vector3(s * dist_value, 0, -1);
+            hand[i].transform.localScale = Vector3.one;
+            s++;
         }
+        float offset = 0;
+        if ((hand.Length - emptySlots) % 2 == 0) offset = 0.4f;
+        canvasHand.GetComponent<RectTransform>().anchoredPosition -= new Vector2(((hand.Length - emptySlots) / 2) * 0.8f - offset, 0);
     }
 
     void InputManager()

@@ -22,6 +22,11 @@ public class CameraScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (cam.orthographicSize < 1) cam.orthographicSize = 1;
+        if (cam.orthographicSize > 8) cam.orthographicSize = 8;
+
+
+
         PlayerScript player = GameBoardScript.gameBoard.GetCurrentTurnPlayer();
         if (Input.GetMouseButtonDown(0))
         {

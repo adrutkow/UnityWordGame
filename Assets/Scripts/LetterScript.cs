@@ -67,7 +67,7 @@ public class LetterScript : MonoBehaviour
         isSelected = true;
         if (player.currentSelectedLetter != null) player.currentSelectedLetter.Deselect();
         player.currentSelectedLetter = this;
-        GetComponent<SpriteRenderer>().color = Color.green;
+        GetComponentInChildren<SpriteRenderer>().color = Color.green;
         if (isPermanent) GetComponent<SpriteRenderer>().color = Color.yellow;
         player.selectedLetterThisFrame = true;
         PlaySelectAnimation();
@@ -96,7 +96,7 @@ public class LetterScript : MonoBehaviour
         isSelected = false;
         PlayerScript player = GameBoardScript.gameBoard.GetCurrentTurnPlayer();
         player.currentSelectedLetter = null;
-        GetComponent<SpriteRenderer>().color = Color.white;
+        GetComponentInChildren<SpriteRenderer>().color = Color.white;
         if (isPermanent) GetComponent<SpriteRenderer>().color = Color.magenta;
 
     }

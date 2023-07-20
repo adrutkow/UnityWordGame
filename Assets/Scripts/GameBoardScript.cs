@@ -208,7 +208,7 @@ public class GameBoardScript : MonoBehaviour
             letter.transform.position = new Vector3(x * TILE_SIZE, y * TILE_SIZE);
             letter.transform.parent = transform;
 
-            letter.transform.localScale = new Vector3(1.09f, 1, 1);
+            letter.transform.localScale = new Vector3(1, 1, 1);
             CheckForWords(x, y);
             if (oldPos != null) CheckForWordsAllAround(oldPos[0], oldPos[1]);
             if (oldPos != null) CheckForWordsAllAround(oldPos[0], oldPos[1]);
@@ -661,20 +661,15 @@ public class GameBoardScript : MonoBehaviour
 
     public void DebugInfo()
     {
-        Debug.Log("possibleWords:"+possibleWords.Count);
-        foreach(Word word in possibleWords)
-        {
-            Debug.Log(word.GetWordString());
-        }
+
 
         PlayerScript player = GetCurrentTurnPlayer();
-        for (int i = 0; i < PlayerScript.HAND_SIZE; i++)
-        {
-            PutLetterInBag(player.hand[i]);
-            GivePlayerLetterFromBag(player);
-        }
-
-        Debug.Log("LONE:" + HasLoneLetters());
+        /*        for (int i = 0; i < PlayerScript.HAND_SIZE; i++)
+                {
+                    PutLetterInBag(player.hand[i]);
+                    GivePlayerLetterFromBag(player);
+                }*/
+        player.ArrangeHand();
     }
 
     public int CalculateTotalScore()
