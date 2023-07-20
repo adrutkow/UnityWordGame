@@ -80,6 +80,16 @@ public class PlayerScript : MonoBehaviour
             ArrangeHand();
             GameBoardScript.gameBoard.DebugInfo();
         }
+
+        if (Input.mouseScrollDelta.y > 0)
+        {
+            Camera.main.GetComponent<Camera>().orthographicSize += -Input.mouseScrollDelta.y * 0.2f;
+        }
+
+        if (Input.mouseScrollDelta.y < 0)
+        {
+            Camera.main.GetComponent<Camera>().orthographicSize += -Input.mouseScrollDelta.y * 0.2f;
+        }
     }
 
     void OnLeftClick()

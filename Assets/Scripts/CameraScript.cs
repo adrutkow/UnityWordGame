@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 public class CameraScript : MonoBehaviour
@@ -9,11 +10,13 @@ public class CameraScript : MonoBehaviour
     Camera cam;
     bool drag = false;
     public bool firstClickedNothing = false;
+    public static CameraScript mainCamera;
 
     // Start is called before the first frame update
     void Start()
     {
         cam = GetComponent<Camera>();
+        mainCamera = this;
     }
 
     // Update is called once per frame

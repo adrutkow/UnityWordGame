@@ -32,7 +32,6 @@ public class GameBoardScript : MonoBehaviour
     public int turnScore = 0;
     public List<string> invalidReasons = new List<string>();
 
-
     void Start()
     {
         gameBoard = this;
@@ -178,11 +177,50 @@ public class GameBoardScript : MonoBehaviour
         return false;
     }
 
+    public int[] GetLetterPosition(LetterScript letter)
+    {
+        for (int y = 0; y < size[1]; y++)
+        {
+            for (int x = 0; x < size[0]; x++)
+            {
+                if (boardLetters[x, y] == letter)
+                {
+                    return new int[] { x, y };
+                }
+            }
+        }
+        return null;
+    }
+
     public void AddLetter(LetterScript letter, int x, int y)
     {
         // idk what i did here, have to fix
         //
+
+
+        if (boardLetters[x,y] == null)
+        {
+            int[] oldPos = GetLetterPosition(letter);
+            if (oldPos != null) boardLetters[oldPos[0], oldPos[1]] = null;
+            boardLetters[x, y] = letter;
+            letter.ChangeState(LetterScript.State.ON_BOARD);
+            letter.ResetAnimation();
+            letter.transform.position = new Vector3(x * TILE_SIZE, y * TILE_SIZE);
+            letter.transform.parent = transform;
+
+            letter.transform.localScale = new Vector3(1.09f, 1, 1);
+            CheckForWords(x, y);
+            if (oldPos != null) CheckForWordsAllAround(oldPos[0], oldPos[1]);
+            if (oldPos != null) CheckForWordsAllAround(oldPos[0], oldPos[1]);
+            CheckForWordsAllAround(x, y);
+            OnBoardChange();
+        }
+
+        return;
+
+
         letter.ResetAnimation();
+
 
         letter.transform.position = new Vector3(x * TILE_SIZE, y * TILE_SIZE);
         letter.transform.parent = transform;
@@ -899,6 +937,7 @@ public class Word
 
         foreach (LetterScript letter in letterList)
         {
+            if (letter.state == LetterScript.State.ON_BOARD_PERMANENTLY) continue;
             if (w.isLetterInWord(letter)) return true;
         }
         return false;
