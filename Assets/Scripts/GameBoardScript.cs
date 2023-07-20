@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using TMPro;
 using Unity.Mathematics;
 using Unity.VisualScripting;
 using UnityEditor.SceneTemplate;
@@ -27,6 +28,9 @@ public class GameBoardScript : MonoBehaviour
     public int turn = 0;
     public int starTilePosition = 12;
     public bool isFirstTurn = true;
+    public bool isTurnValid = false;
+    public int turnScore = 0;
+    public List<string> invalidReasons = new List<string>();
 
 
     void Start()
@@ -404,7 +408,6 @@ public class GameBoardScript : MonoBehaviour
     /// </summary>
     public void OnBoardChange()
     {
-
         List<Word> toBeRemoved = new List<Word>();
         foreach (Word word in possibleWords)
         {
@@ -464,6 +467,7 @@ public class GameBoardScript : MonoBehaviour
             }
         }
         RemoveWordsFromListOfWords(possibleWords, toBeRemoved);
+        UpdateTurn();
     }
 
     /// <summary>
@@ -507,6 +511,61 @@ public class GameBoardScript : MonoBehaviour
             listCopy.Add(originalList[i]);
         }
         RemoveWordsFromListOfWords(originalList, listCopy);
+    }
+
+    public void UpdateTurn()
+    {
+        isTurnValid = IsTurnValid();
+        if (isTurnValid)
+        {
+            turnScore = CalculateTotalScore();
+        }
+
+        if (!isTurnValid)
+        {
+            foreach (Word w in possibleWords)
+            {
+                w.MakeInvalid();
+            }
+        }
+
+    }
+
+    /// <summary>
+    /// Checks if a turn can be ended
+    /// </summary>
+    /// <returns></returns>
+    public bool IsTurnValid()
+    {
+        invalidReasons.Clear();
+
+        if (possibleWords.Count == 0) invalidReasons.Add("No words on board!");
+        if (ContainsInvalidWords()) invalidReasons.Add("Invalid words on board!");
+        if (HasLoneLetters()) invalidReasons.Add("Lone letters on board!");
+        if (isFirstTurn)
+        {
+            if (possibleWords.Count > 1)
+            {
+                invalidReasons.Add("First turn must contain only 1 word!");
+            }
+
+            if (possibleWords.Count == 1)
+            {
+                if (!possibleWords[0].IsWordOnStarTile()) invalidReasons.Add("First word must be on a star tile!");
+            }
+        }
+
+        if (invalidReasons.Count > 0) return false;
+        return true;
+    }
+
+    public bool ContainsInvalidWords()
+    {
+        foreach (Word word in possibleWords)
+        {
+            if (word.isInvalid) return true;
+        }
+        return false;
     }
 
     /// <summary>
@@ -800,6 +859,21 @@ public class Word
                 Debug.Log(letter.GetLetter() + " is " + letter.GetLetter());
                 return true;
             }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Checks if a word has a letter in common with the current word.
+    /// </summary>
+    /// <returns></returns>
+    public bool isWordConnected(Word w)
+    {
+        List<LetterScript> letterList = GetAllLetters();
+
+        foreach (LetterScript letter in letterList)
+        {
+            if (w.isLetterInWord(letter)) return true;
         }
         return false;
     }

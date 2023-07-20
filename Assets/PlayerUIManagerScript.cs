@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class PlayerUIManagerScript : MonoBehaviour
 {
@@ -21,7 +22,7 @@ public class PlayerUIManagerScript : MonoBehaviour
     {
         placeWordButtonText.text = "";
         // TODO: Bad performance here, to fix later
-        if (GameBoardScript.gameBoard.possibleWords.Count != 0)
+        /*if (GameBoardScript.gameBoard.possibleWords.Count != 0)
         {
 
             bool hasInvalid = false;
@@ -42,7 +43,22 @@ public class PlayerUIManagerScript : MonoBehaviour
         } else
         {
             placeWordButton.SetActive(false);
+        }*/
+
+        if (GameBoardScript.gameBoard.isTurnValid)
+        {
+            placeWordButton.SetActive(true);
+            placeWordButtonText.text = "Place word!\n" + GameBoardScript.gameBoard.turnScore + " points";
         }
+        else
+        {
+            placeWordButton.SetActive(true);
+            foreach (string reason in GameBoardScript.gameBoard.invalidReasons)
+            {
+                placeWordButtonText.text += reason + "\n";
+            }
+        }
+
 
         wordListText.text = "Words so far:\n";
         foreach (string word in GameBoardScript.gameBoard.completedWords)
