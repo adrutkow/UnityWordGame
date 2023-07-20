@@ -57,6 +57,7 @@ public class LetterScript : MonoBehaviour
     {
         if (state == State.IN_BAG) return;
 
+
         if (isSelected)
         {
             Deselect();
