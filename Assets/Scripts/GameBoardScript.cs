@@ -160,9 +160,7 @@ public class GameBoardScript : MonoBehaviour
                 return;
             }
         }
-
     }
-
 
     /// <summary>
     /// Checks if the given string exists in the current wordList.
@@ -171,7 +169,6 @@ public class GameBoardScript : MonoBehaviour
     /// <returns>True if it exists, False if not.</returns>
     public bool IsValidWord(string w)
     {
-
         if (w.Length == 1) return false;
         string testword = w.ToLower();
         foreach (string word in wordList)
@@ -513,6 +510,9 @@ public class GameBoardScript : MonoBehaviour
         RemoveWordsFromListOfWords(originalList, listCopy);
     }
 
+    /// <summary>
+    /// Updates a turn, checks if the current turn is valid.
+    /// </summary>
     public void UpdateTurn()
     {
         isTurnValid = IsTurnValid();
@@ -552,6 +552,19 @@ public class GameBoardScript : MonoBehaviour
             if (possibleWords.Count == 1)
             {
                 if (!possibleWords[0].IsWordOnStarTile()) invalidReasons.Add("First word must be on a star tile!");
+            }
+        }
+        if (possibleWords.Count > 1)
+        {
+            Word tempWord = possibleWords[0];
+            foreach (Word w in possibleWords)
+            {
+                if (tempWord == w) continue;
+                if (!tempWord.isWordConnected(w))
+                {
+                    invalidReasons.Add("Disconnected words detected!");
+                    break;
+                }
             }
         }
 
