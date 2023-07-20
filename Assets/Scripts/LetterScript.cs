@@ -76,7 +76,10 @@ public class LetterScript : MonoBehaviour
     {
         if (state == State.ON_BOARD_PERMANENTLY) return;
         Animator animator = GetComponent<Animator>();
-        if (animator.GetCurrentAnimatorStateInfo(0).normalizedTime < 1) return;
+        if (animator.GetCurrentAnimatorClipInfo(0)[0].clip.name == "LetterSpin")
+        {
+            if (animator.GetCurrentAnimatorStateInfo(0).normalizedTime < 1) return;
+        }
         animator.Play("LetterSpin", 0, 0);
     }
 
@@ -84,7 +87,7 @@ public class LetterScript : MonoBehaviour
     {
         Debug.Log("RESETANIM");
         transform.rotation = new Quaternion(0, 0, 0, 0);
-        GetComponent<Animator>().Play("Default", 0, 1);
+        GetComponent<Animator>().Play("Default", 0, 0);
     }
 
     public void Deselect()

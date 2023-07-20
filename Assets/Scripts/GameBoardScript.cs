@@ -182,6 +182,8 @@ public class GameBoardScript : MonoBehaviour
     {
         // idk what i did here, have to fix
         //
+        letter.ResetAnimation();
+
         letter.transform.position = new Vector3(x * TILE_SIZE, y * TILE_SIZE);
         letter.transform.parent = transform;
 
@@ -194,7 +196,6 @@ public class GameBoardScript : MonoBehaviour
         letter.oldPosition[0] = x;
         letter.oldPosition[1] = y;
 
-        letter.ResetAnimation();
 
         boardLetters[x, y] = letter;
         letter.ChangeState(LetterScript.State.ON_BOARD);

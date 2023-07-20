@@ -51,6 +51,7 @@ public class PlayerScript : MonoBehaviour
     /// </summary>
     public void ArrangeHand()
     {
+        Debug.Log("ARRANGED");
         GameObject canvasHand = GameObject.Find("Hand");
         float offset = hand.Length * 0.4f;
         if (hand.Length % 2 == 0) offset += 0.4f;
