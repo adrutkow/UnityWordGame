@@ -115,7 +115,6 @@ public class PlayerScript : MonoBehaviour
         bool UIHasBeenClicked = HasTagBeenClicked("UI");
         bool LetterHasBeenClicked = HasTagBeenClicked("Letter");
 
-
         if (!LetterHasBeenClicked)
         {
             if (UIHasBeenClicked && currentSelectedLetter != null)

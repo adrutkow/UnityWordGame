@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 public class PlayerUIManagerScript : MonoBehaviour
 {
 
-    public GameObject placeWordButton;
+    GameObject placeWordButton;
     public TextMeshProUGUI wordListText;
     public TextMeshProUGUI yourTurnText;
     TextMeshProUGUI placeWordButtonText;
@@ -15,6 +15,7 @@ public class PlayerUIManagerScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        placeWordButton = GameObject.Find("PlaceWordButton");
         placeWordButtonText = placeWordButton.GetComponentInChildren<TextMeshProUGUI>();
     }
 
@@ -47,12 +48,12 @@ public class PlayerUIManagerScript : MonoBehaviour
 
         if (GameBoardScript.gameBoard.isTurnValid)
         {
-            placeWordButton.SetActive(true);
+            MakeButtonActive(placeWordButton);
             placeWordButtonText.text = "Place word!\n" + GameBoardScript.gameBoard.turnScore + " points";
         }
         else
         {
-            placeWordButton.SetActive(false);
+            MakeButtonInactive(placeWordButton);
             foreach (string reason in GameBoardScript.gameBoard.invalidReasons)
             {
                 placeWordButtonText.text += reason + "\n";
@@ -77,5 +78,15 @@ public class PlayerUIManagerScript : MonoBehaviour
         if (!GameBoardScript.gameBoard.isTurnValid) return;
         GameBoardScript.gameBoard.GameEndTurn();
         GameBoardScript.gameBoard.RemoveAllWords(GameBoardScript.gameBoard.possibleWords);
+    }
+
+    public void MakeButtonActive(GameObject button)
+    {
+        button.GetComponent<Animator>().SetBool("Disabled", false);
+    }
+
+    public void MakeButtonInactive(GameObject button)
+    {
+        button.GetComponent<Animator>().SetBool("Disabled", true);
     }
 }

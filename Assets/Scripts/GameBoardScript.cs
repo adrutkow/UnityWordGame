@@ -596,6 +596,19 @@ public class GameBoardScript : MonoBehaviour
                 if (!possibleWords[0].IsWordOnStarTile()) invalidReasons.Add("First word must be on a star tile!");
             }
         }
+
+        if (!isFirstTurn)
+        {
+            foreach (Word w in possibleWords)
+            {
+                if (!w.IsConnectedToPermanentLetter())
+                {
+                    invalidReasons.Add("Outside word detected!");
+                    break;
+                }
+            }
+        }
+
         if (possibleWords.Count > 1)
         {
             Word tempWord = possibleWords[0];
@@ -781,6 +794,14 @@ public class Word
 
     public bool IsConnectedToPermanentLetter()
     {
+        // TODO: rewrite this function
+        // It doesn't really make sense, needs better permanent letter connection detection
+        foreach(LetterScript letter in GetAllLetters())
+        {
+            if (letter.state == LetterScript.State.ON_BOARD_PERMANENTLY) return true;
+        }
+
+
         if (isHorizontal)
         {
             // If the letter at the beginning of the word is permanent, true
@@ -814,6 +835,21 @@ public class Word
         return false;
     }
 
+    public bool ContainsPermanentLetter()
+    {
+
+        List<LetterScript> all = new List<LetterScript>();
+        all = GetAllLetters();
+        if (all == null) Debug.Log("what12");
+
+        foreach(LetterScript l in GetAllLetters())
+        {
+            if (l == null) continue;
+            if (l.state == LetterScript.State.ON_BOARD_PERMANENTLY) return true;
+        }
+        return false;
+    }
+
     public bool IsWordOnStarTile()
     {
         int starPos = GameBoardScript.gameBoard.starTilePosition;
@@ -831,6 +867,9 @@ public class Word
     public bool isStraight()
     {
         LetterScript scanLetter;
+
+        if (!ContainsPermanentLetter()) return true;
+
         if (isHorizontal)
         {
             for (int i = 0; i < length; i++)
