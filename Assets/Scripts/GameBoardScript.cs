@@ -177,13 +177,44 @@ public class GameBoardScript : MonoBehaviour
         return false;
     }
 
+    /// <summary>
+    /// Get the letter at given position, if out of bounds or empty, return null
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <returns>letter if found, null if empty or out of bounds</returns>
+    public LetterScript GetBoardLetter(int x, int y)
+    {
+        if (IsOutOfBounds(x, y)) return null;
+        return boardLetters[x, y];
+    }
+
+    /// <summary>
+    /// Change the current boardLetter value at [x,y] to given letter. If no letter is given, set current boardLetter to null
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <param name="letter"></param>
+    public void SetBoardLetter(int x, int y, LetterScript letter=null)
+    {
+        if (IsOutOfBounds(x, y)) return;
+        boardLetters[x, y] = letter;
+    }
+
+    public bool IsOutOfBounds(int x, int y)
+    {
+        if (x < 0 || y < 0) return true;
+        if (x > size[0] || y > size[1]) return true;
+        return false;
+    }
+
     public int[] GetLetterPosition(LetterScript letter)
     {
         for (int y = 0; y < size[1]; y++)
         {
             for (int x = 0; x < size[0]; x++)
             {
-                if (boardLetters[x, y] == letter)
+                if (GetBoardLetter(x, y) == letter)
                 {
                     return new int[] { x, y };
                 }
@@ -198,11 +229,11 @@ public class GameBoardScript : MonoBehaviour
         //
 
 
-        if (boardLetters[x,y] == null)
+        if (GetBoardLetter(x,y) == null)
         {
             int[] oldPos = GetLetterPosition(letter);
-            if (oldPos != null) boardLetters[oldPos[0], oldPos[1]] = null;
-            boardLetters[x, y] = letter;
+            if (oldPos != null) SetBoardLetter(oldPos[0], oldPos[1]);
+            SetBoardLetter(x, y, letter);
             letter.ChangeState(LetterScript.State.ON_BOARD);
             letter.ResetAnimation();
             letter.transform.position = new Vector3(x * TILE_SIZE, y * TILE_SIZE);
@@ -218,7 +249,7 @@ public class GameBoardScript : MonoBehaviour
 
         return;
 
-
+/*
         letter.ResetAnimation();
 
 
@@ -239,7 +270,7 @@ public class GameBoardScript : MonoBehaviour
         letter.ChangeState(LetterScript.State.ON_BOARD);
         CheckForWords(x, y);
         CheckForWordsAllAround(x, y);
-        OnBoardChange();
+        OnBoardChange();*/
     }
 
     /// <summary>
@@ -250,7 +281,7 @@ public class GameBoardScript : MonoBehaviour
     /// <param name="y"></param>
     public void RemoveLetter(int x, int y)
     {
-        LetterScript letter = boardLetters[x, y];
+        LetterScript letter = GetBoardLetter(x, y);
         if (letter == null) return;
         if (!(letter.state == LetterScript.State.ON_BOARD)) return;
 
@@ -258,7 +289,7 @@ public class GameBoardScript : MonoBehaviour
         PlayerScript player = GetCurrentTurnPlayer();
         if (player.PutLetterInHand(letter))
         {
-            boardLetters[x, y] = null;
+            SetBoardLetter(x, y);
             CheckForWordsAllAround(x, y);
             OnBoardChange();
         }
@@ -277,30 +308,30 @@ public class GameBoardScript : MonoBehaviour
         /// Checks for a horizontal word at the given position
         /// Returns a Word object if it found a word, null otherwise
 
-        if (boardLetters[x, y] == null) return null;
+        if (GetBoardLetter(x, y) == null) return null;
 
-        string word = boardLetters[x, y].GetLetter();
+        string word = GetBoardLetter(x, y).GetLetter();
         int leftMostX = x;
 
         // Check for letters on the left side
         for (int i = 1; i < 30; i++)
         {
-            if (boardLetters[x - i, y] == null)
+            if (GetBoardLetter(x - i, y) == null)
             {
                 break;
             }
-            word = boardLetters[x - i, y].GetLetter() + word;
+            word = GetBoardLetter(x - i, y).GetLetter() + word;
             leftMostX = x - i;
         }
 
         // Check for letters on the right side
         for (int i = 1; i < 30; i++)
         {
-            if (boardLetters[x + i, y] == null)
+            if (GetBoardLetter(x + i, y) == null)
             {
                 break;
             }
-            word += boardLetters[x + i, y].GetLetter();
+            word += GetBoardLetter(x + i, y).GetLetter();
         }
 
         if (IsValidWord(word))
@@ -321,32 +352,32 @@ public class GameBoardScript : MonoBehaviour
     /// <returns></returns>
     public Word CheckForVerticalWord(int x, int y)
     {
-        if (boardLetters[x, y] == null) return null;
+        if (GetBoardLetter(x, y) == null) return null;
 
-        string word = boardLetters[x, y].GetLetter();
+        string word = GetBoardLetter(x, y).GetLetter();
         int upMostY = y;
 
         // Check for letters on the top side
         for (int i = 1; i < 30; i++)
         {
-            if (boardLetters[x, y + i] == null)
+            if (GetBoardLetter(x, y + i) == null)
             {
                 break;
             }
 
-            word = boardLetters[x, y + i].GetLetter() + word;
+            word = GetBoardLetter(x, y + i).GetLetter() + word;
             upMostY = y + i;
         }
 
         // Check for letters on the bottom side
         for (int i = 1; i < 30; i++)
         {
-            if (boardLetters[x, y - i] == null)
+            if (GetBoardLetter(x, y - i) == null)
             {
                 break;
             }
 
-            word += boardLetters[x, y - i].GetLetter();
+            word += GetBoardLetter(x, y - i).GetLetter();
         }
 
         if (IsValidWord(word))
@@ -367,13 +398,15 @@ public class GameBoardScript : MonoBehaviour
     /// <param name="y"></param>
     public void CheckForWords(int x, int y)
     {
-        if (boardLetters[x, y] == null) return; 
+        if (GetBoardLetter(x, y) == null) return; 
 
         Word horizontalWord = CheckForHorizontalWord(x, y);
         Word verticalWord = CheckForVerticalWord(x, y);
 
         // If it's the first turn, and the word isn't on a star tile, make it invalid
-        if (isFirstTurn)
+
+        // NOTE FROM FUTURE: this might be unnecessary now
+/*        if (isFirstTurn)
         {
             if (verticalWord != null)
             {
@@ -389,9 +422,11 @@ public class GameBoardScript : MonoBehaviour
                     horizontalWord.MakeInvalid("Not on a star tile!");
                 }
             }
-        }
+        }*/
 
-        if (horizontalWord != null)
+        // NOTE FROM FUTURE: This might be unecessary aswell
+
+/*        if (horizontalWord != null)
         {
             if (!horizontalWord.isStraight())
             {
@@ -405,7 +440,7 @@ public class GameBoardScript : MonoBehaviour
             {
                 verticalWord.MakeInvalid("Not straight!");
             }
-        }
+        }*/
 
         if (horizontalWord != null) AddWordToList(horizontalWord);
         if (verticalWord != null) AddWordToList(verticalWord);
@@ -451,14 +486,23 @@ public class GameBoardScript : MonoBehaviour
         {
             // TEST: re-check every word for straightness
             // Have to take care of specific cases
-            if (word.isStraight())
+
+            // NOTE FROM FUTURE: this might be unecessary aswell
+/*            if (word.isStraight())
             {
                 if (word.isInvalid) word.MakeValid();
             }
             else
             {
                 if (!word.isInvalid) word.MakeInvalid();
+            }*/
+
+            if (word.isInvalid)
+            {
+                word.MakeValid();
             }
+            
+            
 
             // If any of the letters are missing, remove the word
             int ix = 0;
@@ -468,7 +512,7 @@ public class GameBoardScript : MonoBehaviour
                 if (word.isHorizontal) ix = i;
                 if (!word.isHorizontal) iy = i;
 
-                if (boardLetters[word.x + ix, word.y - iy] == null)
+                if (GetBoardLetter(word.x + ix, word.y - iy) == null)
                 {
                     toBeRemoved.Add(word);
                 }
@@ -477,13 +521,13 @@ public class GameBoardScript : MonoBehaviour
             if (word.isHorizontal)
             {
                 // Remove if a letter at the end of the word has been changed (horizontal)
-                if (boardLetters[word.x + word.length, word.y] != null)
+                if (GetBoardLetter(word.x + word.length, word.y) != null)
                 {
                     toBeRemoved.Add(word);
                 }
 
                 // Remove if a letter at the beginning of the word has been changed (horizontal)
-                if (boardLetters[word.x - 1, word.y] != null)
+                if (GetBoardLetter(word.x - 1, word.y) != null)
                 {
                     toBeRemoved.Add(word);
                 }
@@ -492,13 +536,13 @@ public class GameBoardScript : MonoBehaviour
             if (!word.isHorizontal)
             {
                 // Remove if a letter at the end of the word has been changed (vertical)
-                if (boardLetters[word.x, word.y - word.length] != null)
+                if (GetBoardLetter(word.x, word.y - word.length) != null)
                 {
                     toBeRemoved.Add(word);
                 }
 
                 // Remove if a letter at the beginning of the word has been changed (vertical)
-                if (boardLetters[word.x, word.y + 1] != null)
+                if (GetBoardLetter(word.x, word.y + 1) != null)
                 {
                     toBeRemoved.Add(word);
                 }
@@ -526,6 +570,8 @@ public class GameBoardScript : MonoBehaviour
         possibleWords.Add(w);
         w.Hightlight();
     }
+
+    // FUTURE SELF: fix putting letter, removing letter, words stay invalid
 
     public void RemoveWordsFromListOfWords(List<Word> originalList, List<Word> wordsToBeRemoved)
     {
@@ -582,6 +628,7 @@ public class GameBoardScript : MonoBehaviour
         invalidReasons.Clear();
 
         if (possibleWords.Count == 0) invalidReasons.Add("No words on board!");
+        if (!AreBoardLettersStraight()) invalidReasons.Add("Temporary letters aren't straight!");
         if (ContainsInvalidWords()) invalidReasons.Add("Invalid words on board!");
         if (HasLoneLetters()) invalidReasons.Add("Lone letters on board!");
         if (isFirstTurn)
@@ -625,6 +672,73 @@ public class GameBoardScript : MonoBehaviour
 
         if (invalidReasons.Count > 0) return false;
         return true;
+    }
+
+    /// <summary>
+    /// Checks if all letters on the board are following each other horizontally or vertically.
+    /// </summary>
+    /// <returns>true if they follow each other, false if there's a floating letter</returns>
+    public bool AreBoardLettersStraight()
+    {
+        List<LetterScript> TempBoardLetters = GetAllLettersInState(LetterScript.State.ON_BOARD);
+        string currentDirection = null;
+
+        foreach (LetterScript letter in TempBoardLetters)
+        {
+            if (letter.IsLonely()) return false;
+            int[] letterPos = GetLetterPosition(letter);
+            int x = letterPos[0];
+            int y = letterPos[1];
+
+            // Check for horizontal non-permanent board letter
+            // left
+            if (GetBoardLetter(x-1, y) != null)
+            {
+                if (GetBoardLetter(x-1, y).state == LetterScript.State.ON_BOARD)
+                {
+                    if (currentDirection == null || currentDirection == "horizontal") currentDirection = "horizontal"; else return false;
+                }
+            }
+            // right
+            if (GetBoardLetter(x + 1, y) != null)
+            {
+                if (GetBoardLetter(x + 1, y).state == LetterScript.State.ON_BOARD)
+                {
+                    if (currentDirection == null || currentDirection == "horizontal") currentDirection = "horizontal"; else return false;
+                }
+            }
+
+            // down
+            if (GetBoardLetter(x, y - 1) != null)
+            {
+                if (GetBoardLetter(x, y - 1).state == LetterScript.State.ON_BOARD)
+                {
+                    if (currentDirection == null || currentDirection == "vertical") currentDirection = "vertical"; else return false;
+                }
+            }
+
+            // up
+            if (GetBoardLetter(x, y + 1) != null)
+            {
+                if (GetBoardLetter(x, y + 1).state == LetterScript.State.ON_BOARD)
+                {
+                    if (currentDirection == null || currentDirection == "vertical") currentDirection = "vertical"; else return false;
+                }
+            }
+        }
+        return true;
+    }
+
+
+    public List<LetterScript> GetAllLettersInState(LetterScript.State s)
+    {
+        List<LetterScript> tempList = new List<LetterScript>();
+        foreach(GameObject letterGO in GameObject.FindGameObjectsWithTag("Letter"))
+        {
+            LetterScript letter = letterGO.GetComponent<LetterScript>();
+            if (letter.state == s) tempList.Add(letter);
+        }
+        return tempList;
     }
 
     public bool ContainsInvalidWords()
@@ -749,7 +863,7 @@ public class Word
         {
             if (isHorizontal) ix = i;
             if (!isHorizontal) iy = i;
-            temp.Add(GameBoardScript.gameBoard.boardLetters[x + ix, y - iy]);
+            temp.Add(GameBoardScript.gameBoard.GetBoardLetter(x + ix, y - iy));
         }
 
         return temp;
@@ -805,30 +919,30 @@ public class Word
         if (isHorizontal)
         {
             // If the letter at the beginning of the word is permanent, true
-            if (GameBoardScript.gameBoard.boardLetters[x - 1, y] != null)
+            if (GameBoardScript.gameBoard.GetBoardLetter(x - 1, y) != null)
             {
-                if (GameBoardScript.gameBoard.boardLetters[x - 1, y].state == LetterScript.State.ON_BOARD_PERMANENTLY) return true;
+                if (GameBoardScript.gameBoard.GetBoardLetter(x - 1, y).state == LetterScript.State.ON_BOARD_PERMANENTLY) return true;
             }
 
             // If the letter at the end of the word is permanent, true
-            if (GameBoardScript.gameBoard.boardLetters[x + 1 + length, y] != null)
+            if (GameBoardScript.gameBoard.GetBoardLetter(x + 1 + length, y) != null)
             {
-                if (GameBoardScript.gameBoard.boardLetters[x + 1 + length, y].state == LetterScript.State.ON_BOARD_PERMANENTLY) return true;
+                if (GameBoardScript.gameBoard.GetBoardLetter(x + 1 + length, y).state == LetterScript.State.ON_BOARD_PERMANENTLY) return true;
             }
         }
 
         if (!isHorizontal)
         {
             // If the letter above the word is permanent, true
-            if (GameBoardScript.gameBoard.boardLetters[x, y + 1] != null)
+            if (GameBoardScript.gameBoard.GetBoardLetter(x, y + 1) != null)
             {
-                if (GameBoardScript.gameBoard.boardLetters[x, y + 1].state == LetterScript.State.ON_BOARD_PERMANENTLY) return true;
+                if (GameBoardScript.gameBoard.GetBoardLetter(x, y + 1).state == LetterScript.State.ON_BOARD_PERMANENTLY) return true;
             }
 
             // If the letter at the bottom of the word is permanent, true
-            if (GameBoardScript.gameBoard.boardLetters[x, y - 1 - length] != null)
+            if (GameBoardScript.gameBoard.GetBoardLetter(x, y - 1 - length) != null)
             {
-                if (GameBoardScript.gameBoard.boardLetters[x, y - 1 - length].state == LetterScript.State.ON_BOARD_PERMANENTLY) return true;
+                if (GameBoardScript.gameBoard.GetBoardLetter(x, y - 1 - length).state == LetterScript.State.ON_BOARD_PERMANENTLY) return true;
             }
         }
 
@@ -855,7 +969,7 @@ public class Word
         int starPos = GameBoardScript.gameBoard.starTilePosition;
         foreach (LetterScript letter in GetAllLetters())
         {
-            if (GameBoardScript.gameBoard.boardLetters[starPos, starPos] == letter) return true;
+            if (GameBoardScript.gameBoard.GetBoardLetter(starPos, starPos) == letter) return true;
         }
         return false;
     }
@@ -874,7 +988,7 @@ public class Word
         {
             for (int i = 0; i < length; i++)
             {
-                scanLetter = GameBoardScript.gameBoard.boardLetters[x + i, y - 1];
+                scanLetter = GameBoardScript.gameBoard.GetBoardLetter(x + i, y - 1);
                 if (scanLetter != null)
                 {
                     if (scanLetter.state != LetterScript.State.ON_BOARD_PERMANENTLY)
@@ -883,7 +997,7 @@ public class Word
                     }
                 }
 
-                scanLetter = GameBoardScript.gameBoard.boardLetters[x + i, y + 1];
+                scanLetter = GameBoardScript.gameBoard.GetBoardLetter(x + i, y + 1);
                 if (scanLetter != null)
                 {
                     if (scanLetter.state != LetterScript.State.ON_BOARD_PERMANENTLY)
@@ -898,7 +1012,7 @@ public class Word
         {
             for (int i = 0; i < length; i++)
             {
-                scanLetter = GameBoardScript.gameBoard.boardLetters[x + 1, y - i];
+                scanLetter = GameBoardScript.gameBoard.GetBoardLetter(x + 1, y - i);
                 if (scanLetter != null)
                 {
                     if (scanLetter.state != LetterScript.State.ON_BOARD_PERMANENTLY)
@@ -907,7 +1021,7 @@ public class Word
                     }
                 }
 
-                scanLetter = GameBoardScript.gameBoard.boardLetters[x - 1, y - i];
+                scanLetter = GameBoardScript.gameBoard.GetBoardLetter(x - 1, y - i);
                 if (scanLetter != null)
                 {
                     if (scanLetter.state != LetterScript.State.ON_BOARD_PERMANENTLY)

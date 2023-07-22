@@ -123,6 +123,28 @@ public class LetterScript : MonoBehaviour
         state = s;
     }
 
+    /// <summary>
+    /// Checks if the letter has any horizontal or vertical neighbours
+    /// </summary>
+    /// <param name="letter"></param>
+    /// <returns></returns>
+    public bool IsLonely()
+    {
+        GameBoardScript gameBoard = GameBoardScript.gameBoard;
+        int[] pos = gameBoard.GetLetterPosition(this);
+        int x = pos[0];
+        int y = pos[1];
+
+        if (gameBoard.GetBoardLetter(x + 1, y) == null &&
+            gameBoard.GetBoardLetter(x - 1, y) == null &&
+            gameBoard.GetBoardLetter(x, y + 1) == null &&
+            gameBoard.GetBoardLetter(x, y - 1) == null)
+        {
+            return true;
+        }
+        return false;
+    }
+
     public enum State
     {
         IN_HAND,
